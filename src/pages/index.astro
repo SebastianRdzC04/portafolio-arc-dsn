@@ -1,11 +1,138 @@
 ---
-import Welcome from '../components/Welcome.astro';
 import Layout from '../layouts/Layout.astro';
+import SubjectCard from '../components/SubjectCard.astro';
+import { subjects, student } from '../data/subjects';
+import { getCollection } from 'astro:content';
+import { parseWorkId } from '../lib/utils';
 
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+const allWorks = await getCollection('trabajos', ({ data }) => !data.draft);
+
+/** Count published works per subject slug */
+const workCounts = new Map<string, number>();
+for (const work of allWorks) {
+  const { subject } = parseWorkId(work.id);
+  workCounts.set(subject, (workCounts.get(subject) ?? 0) + 1);
+}
 ---
 
 <Layout>
-	<Welcome />
+  <section class="hero">
+    <div class="hero__inner container">
+      <p class="hero__greeting">Portafolio Academico</p>
+      <h1 class="hero__title">{student.name}</h1>
+      <p class="hero__subtitle">{student.career}</p>
+      <p class="hero__description">
+        Repositorio de trabajos, investigaciones y proyectos organizados por materia y unidad.
+      </p>
+    </div>
+  </section>
+
+  <section class="subjects" aria-labelledby="subjects-heading">
+    <div class="subjects__inner container">
+      <h2 id="subjects-heading" class="subjects__heading">Materias</h2>
+      <div class="subjects__grid">
+        {subjects.map((subject) => (
+          <SubjectCard
+            subject={subject}
+            workCount={workCounts.get(subject.slug) ?? 0}
+          />
+        ))}
+      </div>
+    </div>
+  </section>
 </Layout>
+
+<style>
+  /* ---- Hero ---- */
+  .hero {
+    padding: var(--space-16) 0 var(--space-12);
+    background-color: var(--color-bg);
+  }
+
+  .hero__inner {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    max-width: var(--max-width-narrow);
+  }
+
+  .hero__greeting {
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    color: var(--color-accent);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+  }
+
+  .hero__title {
+    font-family: var(--font-heading);
+    font-size: var(--text-5xl);
+    font-weight: var(--weight-bold);
+    line-height: var(--leading-tight);
+    color: var(--color-text);
+    letter-spacing: var(--tracking-tight);
+  }
+
+  .hero__subtitle {
+    font-family: var(--font-heading);
+    font-size: var(--text-xl);
+    font-weight: var(--weight-medium);
+    color: var(--color-text-secondary);
+  }
+
+  .hero__description {
+    font-size: var(--text-lg);
+    color: var(--color-text-muted);
+    line-height: var(--leading-relaxed);
+    max-width: var(--max-width-prose);
+  }
+
+  @media (max-width: 639px) {
+    .hero {
+      padding: var(--space-10) 0 var(--space-8);
+    }
+
+    .hero__title {
+      font-size: var(--text-3xl);
+    }
+
+    .hero__subtitle {
+      font-size: var(--text-lg);
+    }
+
+    .hero__description {
+      font-size: var(--text-base);
+    }
+  }
+
+  /* ---- Subjects ---- */
+  .subjects {
+    padding-bottom: var(--space-16);
+  }
+
+  .subjects__inner {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+  }
+
+  .subjects__heading {
+    font-family: var(--font-heading);
+    font-size: var(--text-2xl);
+    font-weight: var(--weight-bold);
+    color: var(--color-text);
+  }
+
+  .subjects__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-5);
+  }
+
+  @media (min-width: 640px) {
+    .subjects__grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+</style>

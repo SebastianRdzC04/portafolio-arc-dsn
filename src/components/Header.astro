@@ -1,0 +1,213 @@
+---
+import { subjects, student } from '../data/subjects';
+
+const currentPath = Astro.url.pathname;
+---
+
+<header class="header">
+  <nav class="header__nav container" aria-label="Main navigation">
+    <a href="/" class="header__logo">
+      <span class="header__logo-initials" aria-hidden="true">SR</span>
+      <span class="header__logo-name">{student.name.split(' ').slice(0, 2).join(' ')}</span>
+    </a>
+
+    <button
+      class="header__menu-toggle"
+      aria-label="Toggle navigation menu"
+      aria-expanded="false"
+      aria-controls="nav-menu"
+    >
+      <svg class="header__menu-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line class="header__menu-line header__menu-line--top" x1="3" y1="6" x2="21" y2="6" />
+        <line class="header__menu-line header__menu-line--mid" x1="3" y1="12" x2="21" y2="12" />
+        <line class="header__menu-line header__menu-line--bot" x1="3" y1="18" x2="21" y2="18" />
+      </svg>
+    </button>
+
+    <ul id="nav-menu" class="header__links" role="list">
+      <li>
+        <a
+          href="/"
+          class:list={['header__link', { 'header__link--active': currentPath === '/' }]}
+        >
+          Inicio
+        </a>
+      </li>
+      {subjects.map((subject) => (
+        <li>
+          <a
+            href={`/${subject.slug}/`}
+            class:list={[
+              'header__link',
+              { 'header__link--active': currentPath.startsWith(`/${subject.slug}`) },
+            ]}
+          >
+            {subject.shortName}
+          </a>
+        </li>
+      ))}
+    </ul>
+  </nav>
+</header>
+
+<script>
+  const toggle = document.querySelector('.header__menu-toggle');
+  const menu = document.getElementById('nav-menu');
+
+  if (toggle && menu) {
+    toggle.addEventListener('click', () => {
+      const isOpen = toggle.getAttribute('aria-expanded') === 'true';
+      toggle.setAttribute('aria-expanded', String(!isOpen));
+      menu.classList.toggle('header__links--open');
+    });
+  }
+</script>
+
+<style>
+  .header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: var(--header-height);
+    background-color: rgb(250 250 250 / 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--color-border);
+    z-index: var(--z-sticky);
+  }
+
+  .header__nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 100%;
+    gap: var(--space-6);
+  }
+
+  /* ---- Logo ---- */
+  .header__logo {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    color: var(--color-text);
+    font-family: var(--font-heading);
+    font-weight: var(--weight-bold);
+    font-size: var(--text-lg);
+    text-decoration: none;
+    flex-shrink: 0;
+    transition: opacity var(--transition-fast);
+  }
+
+  .header__logo:hover {
+    opacity: 0.7;
+    color: var(--color-text);
+  }
+
+  .header__logo-initials {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    background-color: var(--color-primary);
+    color: var(--color-text-inverse);
+    border-radius: var(--radius-md);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-bold);
+    letter-spacing: 0.05em;
+  }
+
+  .header__logo-name {
+    display: none;
+  }
+
+  @media (min-width: 640px) {
+    .header__logo-name {
+      display: inline;
+    }
+  }
+
+  /* ---- Menu toggle (mobile) ---- */
+  .header__menu-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    background: none;
+    border: none;
+    color: var(--color-text);
+    cursor: pointer;
+    border-radius: var(--radius-md);
+    transition: background-color var(--transition-fast);
+  }
+
+  .header__menu-toggle:hover {
+    background-color: var(--color-bg-alt);
+  }
+
+  @media (min-width: 768px) {
+    .header__menu-toggle {
+      display: none;
+    }
+  }
+
+  /* ---- Nav links ---- */
+  .header__links {
+    display: none;
+    flex-direction: column;
+    position: absolute;
+    top: var(--header-height);
+    left: 0;
+    right: 0;
+    background-color: var(--color-bg-card);
+    border-bottom: 1px solid var(--color-border);
+    padding: var(--space-4);
+    gap: var(--space-1);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .header__links--open {
+    display: flex;
+  }
+
+  @media (min-width: 768px) {
+    .header__links {
+      display: flex;
+      flex-direction: row;
+      position: static;
+      background: none;
+      border-bottom: none;
+      padding: 0;
+      gap: var(--space-1);
+      box-shadow: none;
+    }
+  }
+
+  .header__link {
+    display: block;
+    padding: var(--space-2) var(--space-3);
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    border-radius: var(--radius-md);
+    transition: color var(--transition-fast), background-color var(--transition-fast);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .header__link:hover {
+    color: var(--color-text);
+    background-color: var(--color-bg-alt);
+  }
+
+  .header__link--active {
+    color: var(--color-accent);
+    background-color: var(--color-accent-bg);
+  }
+
+  .header__link--active:hover {
+    color: var(--color-accent-dark);
+  }
+</style>

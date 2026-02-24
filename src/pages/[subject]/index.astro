@@ -1,0 +1,149 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import UnitSection from '../../components/UnitSection.astro';
+import { subjects } from '../../data/subjects';
+import { getCollection } from 'astro:content';
+import { parseWorkId, groupBy, sortByOrder } from '../../lib/utils';
+import type { GetStaticPaths } from 'astro';
+
+export const getStaticPaths: GetStaticPaths = async () => {
+  return subjects.map((subject) => ({
+    params: { subject: subject.slug },
+    props: { subject },
+  }));
+};
+
+const { subject } = Astro.props;
+
+const allWorks = await getCollection('trabajos', ({ data }) => !data.draft);
+const subjectWorks = allWorks.filter(
+  (work) => parseWorkId(work.id).subject === subject.slug,
+);
+
+/** Group works by unit slug */
+const unitGroups = groupBy(subjectWorks, (work) => parseWorkId(work.id).unit);
+
+/** Sort unit keys naturally (unidad-1, unidad-2, ...) */
+const sortedUnits = [...unitGroups.entries()].sort(([a], [b]) =>
+  a.localeCompare(b, undefined, { numeric: true }),
+);
+---
+
+<Layout
+  title={`${subject.name} — Portafolio Academico`}
+  description={subject.description}
+>
+  <div class="subject-page container">
+    <Breadcrumbs
+      items={[
+        { label: 'Inicio', href: '/' },
+        { label: subject.name },
+      ]}
+    />
+
+    <header class="subject-page__header" style={`--subject-accent: ${subject.color}`}>
+      <span class="subject-page__badge">{subject.shortName}</span>
+      <h1 class="subject-page__title">{subject.name}</h1>
+      <p class="subject-page__description">{subject.description}</p>
+      <div class="subject-page__meta">
+        <span>Semestre: {subject.semester}</span>
+        <span>{subjectWorks.length} {subjectWorks.length === 1 ? 'trabajo' : 'trabajos'}</span>
+      </div>
+    </header>
+
+    {sortedUnits.length === 0 ? (
+      <div class="subject-page__empty">
+        <p>Aun no hay trabajos publicados para esta materia.</p>
+      </div>
+    ) : (
+      <div class="subject-page__units">
+        {sortedUnits.map(([unitSlug, works]) => (
+          <UnitSection
+            unitSlug={unitSlug}
+            works={works}
+            subjectSlug={subject.slug}
+          />
+        ))}
+      </div>
+    )}
+  </div>
+</Layout>
+
+<style>
+  .subject-page {
+    max-width: var(--max-width);
+    padding-top: var(--space-8);
+  }
+
+  /* ---- Header ---- */
+  .subject-page__header {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    padding-bottom: var(--space-8);
+    margin-bottom: var(--space-8);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .subject-page__badge {
+    display: inline-flex;
+    align-self: flex-start;
+    padding: var(--space-1) var(--space-3);
+    background-color: var(--subject-accent, var(--color-accent));
+    color: var(--color-text-inverse);
+    font-family: var(--font-heading);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-bold);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    border-radius: var(--radius-full);
+  }
+
+  .subject-page__title {
+    font-family: var(--font-heading);
+    font-size: var(--text-4xl);
+    font-weight: var(--weight-bold);
+    line-height: var(--leading-tight);
+    color: var(--color-text);
+  }
+
+  @media (max-width: 639px) {
+    .subject-page__title {
+      font-size: var(--text-3xl);
+    }
+  }
+
+  .subject-page__description {
+    font-size: var(--text-lg);
+    color: var(--color-text-muted);
+    line-height: var(--leading-relaxed);
+    max-width: var(--max-width-prose);
+  }
+
+  .subject-page__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+  }
+
+  /* ---- Units list ---- */
+  .subject-page__units {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-12);
+  }
+
+  /* ---- Empty state ---- */
+  .subject-page__empty {
+    padding: var(--space-12) 0;
+    text-align: center;
+  }
+
+  .subject-page__empty p {
+    font-size: var(--text-lg);
+    color: var(--color-text-muted);
+  }
+</style>

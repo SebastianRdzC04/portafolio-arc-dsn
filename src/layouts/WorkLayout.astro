@@ -1,0 +1,241 @@
+---
+import Layout from './Layout.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import { formatDate, slugToLabel } from '../lib/utils';
+import { getSubjectBySlug } from '../data/subjects';
+
+interface Props {
+  title: string;
+  description: string;
+  date: Date;
+  tags?: string[];
+  subjectSlug: string;
+  unitSlug: string;
+}
+
+const { title, description, date, tags, subjectSlug, unitSlug } = Astro.props;
+const subject = getSubjectBySlug(subjectSlug);
+const subjectName = subject?.name ?? slugToLabel(subjectSlug);
+const unitLabel = slugToLabel(unitSlug);
+---
+
+<Layout title={`${title} — ${subjectName}`} description={description}>
+  <article class="work container">
+    <Breadcrumbs
+      items={[
+        { label: 'Inicio', href: '/' },
+        { label: subjectName, href: `/${subjectSlug}/` },
+        { label: unitLabel },
+        { label: title },
+      ]}
+    />
+
+    <header class="work__header">
+      <div class="work__meta">
+        <time class="work__date" datetime={date.toISOString()}>
+          {formatDate(date)}
+        </time>
+        {tags && tags.length > 0 && (
+          <div class="work__tags">
+            {tags.map((tag) => (
+              <span class="work__tag">{tag}</span>
+            ))}
+          </div>
+        )}
+      </div>
+      <h1 class="work__title">{title}</h1>
+      <p class="work__description">{description}</p>
+    </header>
+
+    <div class="work__content prose">
+      <slot />
+    </div>
+  </article>
+</Layout>
+
+<style>
+  .work {
+    max-width: var(--max-width-narrow);
+    padding-top: var(--space-8);
+  }
+
+  .work__header {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    padding-bottom: var(--space-8);
+    border-bottom: 1px solid var(--color-border);
+    margin-bottom: var(--space-8);
+  }
+
+  .work__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  .work__date {
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+  }
+
+  .work__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1);
+  }
+
+  .work__tag {
+    padding: 2px var(--space-2);
+    background-color: var(--color-accent-bg);
+    color: var(--color-accent);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-medium);
+    border-radius: var(--radius-full);
+  }
+
+  .work__title {
+    font-family: var(--font-heading);
+    font-size: var(--text-4xl);
+    font-weight: var(--weight-bold);
+    line-height: var(--leading-tight);
+    color: var(--color-text);
+  }
+
+  @media (max-width: 639px) {
+    .work__title {
+      font-size: var(--text-3xl);
+    }
+  }
+
+  .work__description {
+    font-size: var(--text-lg);
+    color: var(--color-text-muted);
+    line-height: var(--leading-relaxed);
+    max-width: var(--max-width-prose);
+  }
+
+  /* ================================================================
+     Prose styles: styles for rendered markdown content.
+     Uses :global() to reach into rendered markdown output.
+     ================================================================ */
+
+  .work__content :global(h1),
+  .work__content :global(h2),
+  .work__content :global(h3),
+  .work__content :global(h4),
+  .work__content :global(h5),
+  .work__content :global(h6) {
+    font-family: var(--font-heading);
+    color: var(--color-text);
+    margin-top: var(--space-8);
+    margin-bottom: var(--space-4);
+  }
+
+  .work__content :global(h2) {
+    font-size: var(--text-2xl);
+    padding-bottom: var(--space-3);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .work__content :global(h3) {
+    font-size: var(--text-xl);
+  }
+
+  .work__content :global(p) {
+    margin-bottom: var(--space-4);
+    line-height: var(--leading-relaxed);
+    color: var(--color-text-secondary);
+    max-width: var(--max-width-prose);
+  }
+
+  .work__content :global(ul),
+  .work__content :global(ol) {
+    margin-bottom: var(--space-4);
+    padding-left: var(--space-6);
+    max-width: var(--max-width-prose);
+  }
+
+  .work__content :global(ul) {
+    list-style-type: disc;
+  }
+
+  .work__content :global(ol) {
+    list-style-type: decimal;
+  }
+
+  .work__content :global(li) {
+    margin-bottom: var(--space-2);
+    line-height: var(--leading-relaxed);
+    color: var(--color-text-secondary);
+  }
+
+  .work__content :global(blockquote) {
+    border-left: 3px solid var(--color-accent);
+    padding-left: var(--space-4);
+    margin: var(--space-6) 0;
+    color: var(--color-text-muted);
+    font-style: italic;
+  }
+
+  .work__content :global(a) {
+    color: var(--color-accent);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    transition: color var(--transition-fast);
+  }
+
+  .work__content :global(a:hover) {
+    color: var(--color-accent-dark);
+  }
+
+  .work__content :global(img) {
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--radius-lg);
+    margin: var(--space-6) 0;
+  }
+
+  .work__content :global(table) {
+    width: 100%;
+    border-collapse: collapse;
+    margin: var(--space-6) 0;
+    font-size: var(--text-sm);
+    overflow-x: auto;
+    display: block;
+  }
+
+  .work__content :global(th),
+  .work__content :global(td) {
+    padding: var(--space-3) var(--space-4);
+    text-align: left;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .work__content :global(th) {
+    font-weight: var(--weight-semibold);
+    color: var(--color-text);
+    background-color: var(--color-bg-alt);
+  }
+
+  .work__content :global(td) {
+    color: var(--color-text-secondary);
+  }
+
+  .work__content :global(hr) {
+    border: none;
+    border-top: 1px solid var(--color-border);
+    margin: var(--space-8) 0;
+  }
+
+  .work__content :global(pre) {
+    margin: var(--space-6) 0;
+    overflow-x: auto;
+  }
+
+  .work__content :global(strong) {
+    font-weight: var(--weight-semibold);
+    color: var(--color-text);
+  }
+</style>

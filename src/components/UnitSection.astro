@@ -1,0 +1,70 @@
+---
+import WorkCard from './WorkCard.astro';
+import { slugToLabel, parseWorkId, sortByOrder } from '../lib/utils';
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  unitSlug: string;
+  works: CollectionEntry<'trabajos'>[];
+  subjectSlug: string;
+}
+
+const { unitSlug, works, subjectSlug } = Astro.props;
+const sortedWorks = sortByOrder(works);
+const unitLabel = slugToLabel(unitSlug);
+---
+
+<section class="unit-section" aria-labelledby={`unit-${unitSlug}`}>
+  <h2 id={`unit-${unitSlug}`} class="unit-section__title">{unitLabel}</h2>
+  <div class="unit-section__grid">
+    {sortedWorks.map((work) => {
+      const parsed = parseWorkId(work.id);
+      const href = `/${subjectSlug}/${parsed.unit}/${parsed.work}/${parsed.file}`;
+      return (
+        <WorkCard
+          title={work.data.title}
+          description={work.data.description}
+          date={work.data.date}
+          href={href}
+          image={work.data.image}
+          tags={work.data.tags}
+        />
+      );
+    })}
+  </div>
+</section>
+
+<style>
+  .unit-section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+  }
+
+  .unit-section__title {
+    font-family: var(--font-heading);
+    font-size: var(--text-2xl);
+    font-weight: var(--weight-bold);
+    color: var(--color-text);
+    padding-bottom: var(--space-3);
+    border-bottom: 2px solid var(--color-border);
+  }
+
+  .unit-section__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+  }
+
+  @media (min-width: 640px) {
+    .unit-section__grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .unit-section__grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+</style>
