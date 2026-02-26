@@ -39,6 +39,10 @@ Los elementos clave de UX incluyen:
 | Card sorting | Mixto | Arquitectura de informacion |
 | A/B Testing | Cuantitativo | Optimizacion |
 
+## Recursos visuales
+
+![Diagrama del proceso de investigacion UX](/images/experiencia-de-usuario/imagen1.jpeg)
+
 ## Conclusion
 
 Comprender los fundamentos de UX es esencial para cualquier desarrollador de software. Un producto tecnico excelente que no considere la experiencia del usuario esta condenado a ser subutilizado o abandonado.

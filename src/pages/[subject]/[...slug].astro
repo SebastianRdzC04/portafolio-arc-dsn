@@ -2,9 +2,9 @@
 import WorkLayout from '../../layouts/WorkLayout.astro';
 import { getCollection, render } from 'astro:content';
 import { parseWorkId } from '../../lib/utils';
-import type { GetStaticPaths } from 'astro';
+import type { GetStaticPaths, InferGetStaticPropsType } from 'astro';
 
-export const getStaticPaths: GetStaticPaths = async () => {
+export const getStaticPaths = (async () => {
   const allWorks = await getCollection('trabajos', ({ data }) => !data.draft);
 
   return allWorks.map((entry) => {
@@ -16,9 +16,11 @@ export const getStaticPaths: GetStaticPaths = async () => {
       props: { entry, parsed },
     };
   });
-};
+}) satisfies GetStaticPaths;
 
-const { entry, parsed } = Astro.props;
+type Props = InferGetStaticPropsType<typeof getStaticPaths>;
+
+const { entry, parsed } = Astro.props as Props;
 const { Content } = await render(entry);
 ---
 

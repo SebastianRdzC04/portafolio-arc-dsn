@@ -22,30 +22,30 @@ export interface Subject {
 
 export const subjects: Subject[] = [
   {
-    slug: 'experiencia-de-usuario',
-    name: 'Experiencia de Usuario',
-    shortName: 'UX',
+    slug: "experiencia-de-usuario",
+    name: "Experiencia de Usuario",
+    shortName: "UX",
     description:
-      'Diseño centrado en el usuario, prototipos, pruebas de usabilidad y arquitectura de información.',
-    semester: '2026-1',
-    color: '#2563eb',
+      "Diseño centrado en el usuario, prototipos, pruebas de usabilidad y arquitectura de información.",
+    semester: "2026-1",
+    color: "#2563eb",
   },
   {
-    slug: 'arquitecturas-de-software',
-    name: 'Arquitecturas de Software',
-    shortName: 'Arq. SW',
+    slug: "arquitecturas-de-software",
+    name: "Arquitecturas de Software",
+    shortName: "Arq. SW",
     description:
-      'Patrones arquitectónicos, microservicios, diseño de sistemas y calidad de software.',
-    semester: '2026-1',
-    color: '#7c3aed',
+      "Patrones arquitectónicos, microservicios, diseño de sistemas y calidad de software.",
+    semester: "2026-1",
+    color: "#7c3aed",
   },
 ];
 
 /** Student info — shown in header / footer */
 export const student = {
-  name: 'Sebastián Rodríguez Contreras',
-  career: 'Ingeniería en Desarrollo de Software',
-  institution: 'Universidad',
+  name: "Sebastián Rodríguez Contreras",
+  career: "Ingeniería en Desarrollo de Software",
+  institution: "Universidad Tecnologica de Torreon",
 } as const;
 
 /** Look up a subject by its slug */

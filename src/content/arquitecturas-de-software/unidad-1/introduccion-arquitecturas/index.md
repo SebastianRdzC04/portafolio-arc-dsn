@@ -58,6 +58,10 @@ Descompone la aplicacion en servicios pequenos e independientes que se comunican
 | Seguridad | Proteccion contra amenazas |
 | Mantenibilidad | Facilidad para realizar cambios |
 
+## Recursos visuales
+
+![Diagrama de estilos arquitectonicos](/images/arquitecturas-de-software/imagen2.jpeg)
+
 ## Conclusion
 
 Elegir la arquitectura adecuada es una de las decisiones mas criticas en el desarrollo de software. No existe una arquitectura "perfecta"; la mejor eleccion depende del contexto, los requisitos y las restricciones del proyecto.

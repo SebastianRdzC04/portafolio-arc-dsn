@@ -4,17 +4,19 @@ import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import UnitSection from '../../components/UnitSection.astro';
 import { subjects } from '../../data/subjects';
 import { getCollection } from 'astro:content';
-import { parseWorkId, groupBy, sortByOrder } from '../../lib/utils';
-import type { GetStaticPaths } from 'astro';
+import { parseWorkId, groupBy } from '../../lib/utils';
+import type { GetStaticPaths, InferGetStaticPropsType } from 'astro';
 
-export const getStaticPaths: GetStaticPaths = async () => {
+export const getStaticPaths = (async () => {
   return subjects.map((subject) => ({
     params: { subject: subject.slug },
     props: { subject },
   }));
-};
+}) satisfies GetStaticPaths;
 
-const { subject } = Astro.props;
+type Props = InferGetStaticPropsType<typeof getStaticPaths>;
+
+const { subject } = Astro.props as Props;
 
 const allWorks = await getCollection('trabajos', ({ data }) => !data.draft);
 const subjectWorks = allWorks.filter(
