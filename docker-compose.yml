@@ -1,0 +1,8 @@
+services:
+  portafolio:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "2026:80"
+    restart: unless-stopped
