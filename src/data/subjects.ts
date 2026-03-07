@@ -39,6 +39,15 @@ export const subjects: Subject[] = [
     semester: "2026-1",
     color: "#7c3aed",
   },
+  {
+    slug: "seguridad-informatica",
+    name: "Seguridad Informática",
+    shortName: "Seg. Inf.",
+    description:
+      "Criptografía, seguridad en redes, gestión de vulnerabilidades y políticas de seguridad.",
+    semester: "2026-1",
+    color: "#dc2626",
+  },
 ];
 
 /** Student info — shown in header / footer */
