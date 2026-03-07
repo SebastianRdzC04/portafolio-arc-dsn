@@ -21,10 +21,10 @@ tags: ["Navegación", "UX", "Interfaces", "El Roble", "Interacción"]
 
 **El Roble Eventos** es un sitio web público de marketing para un salón de eventos ubicado en Torreón, Coahuila, México. La aplicación consta de **dos interfaces (páginas) principales**:
 
-| Interfaz | Ruta | Descripción |
-|---|---|---|
-| **Inicio** | `/` | Página principal: héroe, nosotros, lugares y contacto |
-| **Catálogo de Servicios** | `/services-catalog` | Catálogo digital de precios y servicios 2025 |
+| Interfaz                  | Ruta                | Descripción                                           |
+| ------------------------- | ------------------- | ----------------------------------------------------- |
+| **Inicio**                | `/`                 | Página principal: héroe, nosotros, lugares y contacto |
+| **Catálogo de Servicios** | `/services-catalog` | Catálogo digital de precios y servicios 2025          |
 
 > Las rutas `/api/places/*` son rutas internas de la capa BFF (Backend For Frontend) y no son visibles para el usuario final.
 
@@ -76,11 +76,9 @@ La barra de navegación (visible únicamente en la Interfaz 1) contiene el enlac
 </Link>
 ```
 
-<!-- PENDIENTE: subir captura de la NavBar en desktop mostrando los dos enlaces -->
 ![NavBar en desktop — Inicio con los dos enlaces de navegación](/images/experiencia-de-usuario/elroble-navbar-desktop.png)
 
-<!-- PENDIENTE: subir captura de la NavBar en móvil con el menú hamburguesa abierto -->
-![NavBar en móvil — menú hamburguesa abierto](/images/experiencia-de-usuario/elroble-navbar-mobile.png)
+![NavBar en móvil — menú hamburguesa abierto](/images/experiencia-de-usuario/elroble-navbar-mobil.png)
 
 **Comportamiento importante:** El `NavBar` se oculta completamente cuando la ruta activa es `/services-catalog`:
 
@@ -113,18 +111,21 @@ En la parte superior del Catálogo, el componente `MainHero` renderiza un breadc
 Este enlace aparece en la esquina superior izquierda del catálogo y es el **único punto de regreso** a la Interfaz 1, ya que la NavBar está oculta en esta ruta.
 
 <!-- PENDIENTE: subir captura del encabezado del catálogo mostrando el botón "El Roble" en la esquina superior izquierda -->
-![Breadcrumb "El Roble" en el catálogo — único punto de retorno a Inicio](/images/experiencia-de-usuario/elroble-catalogo-mainhero.png)
+
+![Breadcrumb "El Roble" en el catálogo — único punto de retorno a Inicio](/images/experiencia-de-usuario/elroble-services-catalog-mobile.png)
+
+![Breadcrumb "El Roble" en el catálogo — único punto de retorno a Inicio](/images/experiencia-de-usuario/elroble-services-catalog.png)
 
 ---
 
 ### 2.4 Resumen de Interacciones
 
-| Acción del usuario | Componente | Propiedad | Resultado |
-|---|---|---|---|
-| Clic en "Catalogo de Servicios 2025" (desktop) | `NavBar` | `<Link href="/services-catalog">` | Navega a Interfaz 2 |
-| Clic en "Catalogo de Servicios 2025" (móvil) | `NavBar` (hamburguesa) | `<Link href="/services-catalog">` | Navega a Interfaz 2 |
-| Clic en "El Roble" (breadcrumb en catálogo) | `MainHero` | `<Link href="/">` | Regresa a Interfaz 1 |
-| Clic en "Inicio" (NavBar desktop) | `NavBar` | `<Link href="/">` | Permanece / regresa a Interfaz 1 |
+| Acción del usuario                             | Componente             | Propiedad                         | Resultado                        |
+| ---------------------------------------------- | ---------------------- | --------------------------------- | -------------------------------- |
+| Clic en "Catalogo de Servicios 2025" (desktop) | `NavBar`               | `<Link href="/services-catalog">` | Navega a Interfaz 2              |
+| Clic en "Catalogo de Servicios 2025" (móvil)   | `NavBar` (hamburguesa) | `<Link href="/services-catalog">` | Navega a Interfaz 2              |
+| Clic en "El Roble" (breadcrumb en catálogo)    | `MainHero`             | `<Link href="/">`                 | Regresa a Interfaz 1             |
+| Clic en "Inicio" (NavBar desktop)              | `NavBar`               | `<Link href="/">`                 | Permanece / regresa a Interfaz 1 |
 
 > **Nota:** En el menú móvil, los ítems "Inicio" y "Preguntas" **no tienen `href` funcional** — son elementos `<li>` planos. Solo el enlace al Catálogo en móvil está conectado correctamente.
 
@@ -134,13 +135,13 @@ Este enlace aparece en la esquina superior izquierda del catálogo y es el **ún
 
 Desde ambas interfaces existen enlaces a servicios externos que aparecen dentro del contenido donde tienen sentido semántico:
 
-| Interfaz | Sección | Elemento | Destino |
-|---|---|---|---|
-| Interfaz 1 | ContactLocate | "El Roble Eventos" | Facebook — El Roble Eventos |
+| Interfaz   | Sección       | Elemento            | Destino                       |
+| ---------- | ------------- | ------------------- | ----------------------------- |
+| Interfaz 1 | ContactLocate | "El Roble Eventos"  | Facebook — El Roble Eventos   |
 | Interfaz 1 | ContactLocate | "@el_roble.eventos" | Instagram — @el_roble.eventos |
-| Interfaz 1 | ContactLocate | Mapa embebido | Google Maps iframe (Torreón) |
-| Interfaz 2 | MainHero | Dirección física | Google Maps — ubicación |
-| Interfaz 2 | Footer | "SebasDevRC" | Portafolio del desarrollador |
+| Interfaz 1 | ContactLocate | Mapa embebido       | Google Maps iframe (Torreón)  |
+| Interfaz 2 | MainHero      | Dirección física    | Google Maps — ubicación       |
+| Interfaz 2 | Footer        | "SebasDevRC"        | Portafolio del desarrollador  |
 
 ---
 
@@ -150,12 +151,12 @@ Desde ambas interfaces existen enlaces a servicios externos que aparecen dentro 
 
 Existen cuatro tipos principales de navegación en aplicaciones web:
 
-| Tipo | Descripción |
-|---|---|
+| Tipo           | Descripción                                                                                             |
+| -------------- | ------------------------------------------------------------------------------------------------------- |
 | **Jerárquica** | El usuario navega de niveles generales a específicos (padre → hijo). Estructura de árbol entre páginas. |
-| **Lineal** | El usuario avanza en una secuencia predefinida (paso 1 → 2 → 3). Sin posibilidad de saltar pasos. |
-| **Asociativa** | El usuario navega entre contenidos relacionados sin jerarquía fija (estilo Wikipedia). |
-| **Contextual** | Los enlaces aparecen dentro del contenido, relacionados semánticamente con lo que el usuario lee. |
+| **Lineal**     | El usuario avanza en una secuencia predefinida (paso 1 → 2 → 3). Sin posibilidad de saltar pasos.       |
+| **Asociativa** | El usuario navega entre contenidos relacionados sin jerarquía fija (estilo Wikipedia).                  |
+| **Contextual** | Los enlaces aparecen dentro del contenido, relacionados semánticamente con lo que el usuario lee.       |
 
 ---
 
@@ -184,8 +185,7 @@ El usuario parte de la raíz (Inicio) y puede descender a la página hija (Catá
 └─────────────────────────────────────────┘
 ```
 
-<!-- PENDIENTE: subir captura del NavBar con anotación visual que señale el enlace al catálogo como punto de descenso jerárquico -->
-![Navegación jerárquica — NavBar con enlace a /services-catalog](/images/experiencia-de-usuario/elroble-nav-jerarquica.png)
+![Navegación jerárquica — NavBar con enlace a /services-catalog](/images/experiencia-de-usuario/navegacion-services-catalog.png)
 
 > **¿Por qué es jerárquica?** El Inicio es el punto de entrada natural con la navegación principal. El Catálogo es un destino secundario accesible desde el Inicio. La profundidad es de 1 nivel.
 
@@ -239,8 +239,7 @@ Dentro de cada interfaz, el contenido se presenta en **orden lineal y fijo** que
 [13] Footer (créditos)
 ```
 
-<!-- PENDIENTE: subir captura del catálogo con anotación de flecha vertical descendente que ilustre la secuencia lineal de scroll -->
-![Navegación lineal — secuencia de secciones en el catálogo de servicios](/images/experiencia-de-usuario/elroble-nav-lineal.png)
+![Navegación lineal — secuencia de secciones en el catálogo de servicios](/images/experiencia-de-usuario/services-catalog.png)
 
 > **¿Por qué es lineal?** El usuario no puede saltar entre secciones dentro de la misma página. El contenido está diseñado para consumirse en secuencia, como un folleto físico que se hojea de inicio a fin.
 
@@ -263,7 +262,10 @@ Los enlaces a redes sociales, Google Maps y recursos externos aparecen **dentro 
 ```
 
 <!-- PENDIENTE: subir captura de la sección Contacto con los íconos de redes sociales y el mapa embebido visibles -->
-![Navegación contextual — links a redes sociales y mapa en la sección de contacto](/images/experiencia-de-usuario/elroble-nav-contextual.png)
+
+![Navegación contextual — links a redes sociales y mapa en la sección de contacto](/images/experiencia-de-usuario/nav-social-mobil.png)
+
+![Navegación contextual — links a redes sociales y mapa en la sección de contacto](/images/experiencia-de-usuario/nav-social.png)
 
 > **¿Por qué es contextual?** Los links no forman parte de un menú global; aparecen donde el contenido los hace relevantes. El usuario que llega a "Contacto" ya tiene contexto de dónde está y qué representan esos links.
 
@@ -271,11 +273,11 @@ Los enlaces a redes sociales, Google Maps y recursos externos aparecen **dentro 
 
 ### 3.5 Justificación y Conclusión
 
-| Tipo | Presente | Evidencia |
-|---|---|---|
-| **Jerárquica** | Sí | Rutas `/ → /services-catalog`; `NavBar` con `<Link href="/services-catalog">` y `MainHero` con `<Link href="/">` |
-| **Lineal** | Sí | Componentes renderizados secuencialmente en `page.tsx`; sin anclas o menú interno de secciones |
-| **Contextual** | Sí | Links a redes sociales en `ContactLocate`, link a Maps en `MainHero`, link al portafolio en el footer |
-| **Asociativa** | No | No existe sistema de recomendaciones, tags cruzados ni enlaces entre contenidos relacionados |
+| Tipo           | Presente | Evidencia                                                                                                        |
+| -------------- | -------- | ---------------------------------------------------------------------------------------------------------------- |
+| **Jerárquica** | Sí       | Rutas `/ → /services-catalog`; `NavBar` con `<Link href="/services-catalog">` y `MainHero` con `<Link href="/">` |
+| **Lineal**     | Sí       | Componentes renderizados secuencialmente en `page.tsx`; sin anclas o menú interno de secciones                   |
+| **Contextual** | Sí       | Links a redes sociales en `ContactLocate`, link a Maps en `MainHero`, link al portafolio en el footer            |
+| **Asociativa** | No       | No existe sistema de recomendaciones, tags cruzados ni enlaces entre contenidos relacionados                     |
 
 **Conclusión:** Este proyecto utiliza principalmente **navegación lineal** (dentro de cada página) combinada con **navegación jerárquica** (entre las dos páginas). La navegación contextual complementa la experiencia con links externos relevantes. Este modelo es apropiado para un sitio de marketing de un solo servicio donde el objetivo es que el usuario consuma la información en orden y finalmente se contacte con el negocio.
