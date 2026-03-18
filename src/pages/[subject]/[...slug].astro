@@ -9,8 +9,10 @@ export const getStaticPaths = (async () => {
 
   return allWorks.map((entry) => {
     const parsed = parseWorkId(entry.id);
-    // URL: /<subject>/<unit>/<work>/<file>
-    const slug = `${parsed.unit}/${parsed.work}/${parsed.file}`;
+    // URL: /<subject>/<unit>/<work> for index, /<subject>/<unit>/<work>/<file> for others
+    const slug = parsed.file === 'index' 
+      ? `${parsed.unit}/${parsed.work}` 
+      : `${parsed.unit}/${parsed.work}/${parsed.file}`;
     return {
       params: { subject: parsed.subject, slug },
       props: { entry, parsed },

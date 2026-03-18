@@ -12,14 +12,19 @@ interface Props {
 const { unitSlug, works, subjectSlug } = Astro.props;
 const sortedWorks = sortByOrder(works);
 const unitLabel = slugToLabel(unitSlug);
+// Solo mostrar el index.md y que no tenga isSection: true
+const filteredWorks = sortedWorks.filter((work) => {
+  const parsed = parseWorkId(work.id);
+  return parsed.file === 'index' && !work.data.isSection;
+});
 ---
 
 <section class="unit-section" aria-labelledby={`unit-${unitSlug}`}>
   <h2 id={`unit-${unitSlug}`} class="unit-section__title">{unitLabel}</h2>
   <div class="unit-section__grid">
-    {sortedWorks.map((work) => {
+    {filteredWorks.map((work) => {
       const parsed = parseWorkId(work.id);
-      const href = `/${subjectSlug}/${parsed.unit}/${parsed.work}/${parsed.file}`;
+      const href = `/${subjectSlug}/${parsed.unit}/${parsed.work}/`;
       return (
         <WorkCard
           title={work.data.title}

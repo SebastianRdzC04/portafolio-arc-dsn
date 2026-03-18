@@ -9,15 +9,16 @@
  */
 export function slugToLabel(slug: string): string {
   return slug
-    .split('-')
+    .split("-")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
+    .join(" ");
 }
 
 /**
  * Parse a content-collection entry id into its constituent parts.
  *
  * Given an id like "experiencia-de-usuario/unidad-1/investigacion-ux/index"
+ * or "arquitecturas-de-software/unidad-2/modelado-sistema-riego-amdl" (for index.md)
  * returns:
  *   { subject: "experiencia-de-usuario", unit: "unidad-1", work: "investigacion-ux", file: "index" }
  */
@@ -29,12 +30,12 @@ export interface ParsedWorkId {
 }
 
 export function parseWorkId(id: string): ParsedWorkId {
-  const parts = id.split('/');
+  const parts = id.split("/");
   return {
-    subject: parts[0] ?? '',
-    unit: parts[1] ?? '',
-    work: parts[2] ?? '',
-    file: parts[3] ?? '',
+    subject: parts[0] ?? "",
+    unit: parts[1] ?? "",
+    work: parts[2] ?? "",
+    file: parts[3] ?? "index", // Default to 'index' if no file part
   };
 }
 
@@ -42,7 +43,10 @@ export function parseWorkId(id: string): ParsedWorkId {
  * Group an array of items by a key extracted via `keyFn`.
  * Returns a Map to preserve insertion order.
  */
-export function groupBy<T>(items: T[], keyFn: (item: T) => string): Map<string, T[]> {
+export function groupBy<T>(
+  items: T[],
+  keyFn: (item: T) => string,
+): Map<string, T[]> {
   const map = new Map<string, T[]>();
   for (const item of items) {
     const key = keyFn(item);
@@ -60,24 +64,30 @@ export function groupBy<T>(items: T[], keyFn: (item: T) => string): Map<string, 
  * Format a Date as a locale-friendly string (Spanish).
  */
 export function formatDate(date: Date): string {
-  return date.toLocaleDateString('es-MX', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
+  return date.toLocaleDateString("es-MX", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
   });
 }
 
 /**
  * Sort items by date descending (newest first).
  */
-export function sortByDateDesc<T extends { data: { date: Date } }>(items: T[]): T[] {
-  return [...items].sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+export function sortByDateDesc<T extends { data: { date: Date } }>(
+  items: T[],
+): T[] {
+  return [...items].sort(
+    (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
+  );
 }
 
 /**
  * Sort items by optional order field, falling back to date.
  */
-export function sortByOrder<T extends { data: { order?: number; date: Date } }>(items: T[]): T[] {
+export function sortByOrder<T extends { data: { order?: number; date: Date } }>(
+  items: T[],
+): T[] {
   return [...items].sort((a, b) => {
     const orderA = a.data.order ?? Infinity;
     const orderB = b.data.order ?? Infinity;
