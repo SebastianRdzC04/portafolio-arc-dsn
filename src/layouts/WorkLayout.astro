@@ -1,6 +1,7 @@
 ---
 import Layout from './Layout.astro';
 import Breadcrumbs from '../components/Breadcrumbs.astro';
+import PdfExportButton from '../components/PdfExportButton.astro';
 import { formatDate, slugToLabel } from '../lib/utils';
 import { getSubjectBySlug } from '../data/subjects';
 
@@ -31,17 +32,20 @@ const unitLabel = slugToLabel(unitSlug);
     />
 
     <header class="work__header">
-      <div class="work__meta">
-        <time class="work__date" datetime={date.toISOString()}>
-          {formatDate(date)}
-        </time>
-        {tags && tags.length > 0 && (
-          <div class="work__tags">
-            {tags.map((tag) => (
-              <span class="work__tag">{tag}</span>
-            ))}
-          </div>
-        )}
+      <div class="work__header-top">
+        <div class="work__meta">
+          <time class="work__date" datetime={date.toISOString()}>
+            {formatDate(date)}
+          </time>
+          {tags && tags.length > 0 && (
+            <div class="work__tags">
+              {tags.map((tag) => (
+                <span class="work__tag">{tag}</span>
+              ))}
+            </div>
+          )}
+        </div>
+        <PdfExportButton title={title} date={date} />
       </div>
       <h1 class="work__title">{title}</h1>
       <p class="work__description">{description}</p>
@@ -66,6 +70,14 @@ const unitLabel = slugToLabel(unitSlug);
     padding-bottom: var(--space-8);
     border-bottom: 1px solid var(--color-border);
     margin-bottom: var(--space-8);
+  }
+
+  .work__header-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-4);
+    flex-wrap: wrap;
   }
 
   .work__meta {

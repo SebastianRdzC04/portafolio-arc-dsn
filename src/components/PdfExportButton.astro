@@ -1,0 +1,220 @@
+---
+import { generatePdfFilename } from '../lib/pdf-export';
+
+interface Props {
+  title: string;
+  date: Date;
+}
+
+const { title, date } = Astro.props;
+const filename = generatePdfFilename(title, date);
+---
+
+<div class="pdf-export">
+  <button
+    class="pdf-export__button"
+    data-pdf-filename={filename}
+    data-pdf-title={title}
+    data-pdf-date={date.toISOString()}
+    aria-label={`Descargar "${title}" como PDF`}
+  >
+    <svg
+      class="pdf-export__icon"
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+      <polyline points="14 2 14 8 20 8"></polyline>
+      <line x1="12" y1="13" x2="12" y2="17"></line>
+      <line x1="9" y1="15" x2="15" y2="15"></line>
+    </svg>
+    <span class="pdf-export__text">Descargar PDF</span>
+  </button>
+  <div class="pdf-export__status" role="status" aria-live="polite"></div>
+</div>
+
+<script>
+  import { exportWorkToPdf } from '../lib/pdf-export';
+
+  // Find all PDF export buttons
+  const buttons = document.querySelectorAll('.pdf-export__button');
+
+  buttons.forEach((button) => {
+    const buttonEl = button as HTMLButtonElement;
+    const statusEl = buttonEl.closest('.pdf-export')?.querySelector('.pdf-export__status');
+
+    buttonEl.addEventListener('click', async () => {
+      const filename = buttonEl.getAttribute('data-pdf-filename') || 'trabajo.pdf';
+      const title = buttonEl.getAttribute('data-pdf-title') || 'Trabajo';
+      const dateStr = buttonEl.getAttribute('data-pdf-date');
+      const date = dateStr ? new Date(dateStr) : undefined;
+
+      try {
+        // Show loading state
+        buttonEl.disabled = true;
+        buttonEl.classList.add('is-loading');
+
+        if (statusEl) {
+          statusEl.textContent = 'Generando PDF...';
+          statusEl.classList.add('is-loading');
+        }
+
+        // Generate and download PDF
+        await exportWorkToPdf({
+          filename,
+          title,
+          date,
+          elementSelector: '.work__content',
+        });
+
+        // Success feedback
+        if (statusEl) {
+          statusEl.textContent = '✓ PDF descargado';
+          statusEl.classList.remove('is-loading');
+          statusEl.classList.add('is-success');
+
+          setTimeout(() => {
+            statusEl.textContent = '';
+            statusEl.classList.remove('is-success');
+          }, 3000);
+        }
+      } catch (error) {
+        // Error feedback
+        const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+
+        if (statusEl) {
+          statusEl.textContent = `✗ ${errorMessage}`;
+          statusEl.classList.remove('is-loading');
+          statusEl.classList.add('is-error');
+
+          setTimeout(() => {
+            statusEl.textContent = '';
+            statusEl.classList.remove('is-error');
+          }, 5000);
+        }
+
+        console.error('PDF Export Error:', error);
+      } finally {
+        // Reset button state
+        buttonEl.disabled = false;
+        buttonEl.classList.remove('is-loading');
+      }
+    });
+  });
+</script>
+
+<style>
+  .pdf-export {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  .pdf-export__button {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    background-color: var(--color-accent);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    cursor: pointer;
+    transition: background-color var(--transition-fast), transform var(--transition-fast);
+    white-space: nowrap;
+  }
+
+  .pdf-export__button:hover:not(:disabled) {
+    background-color: var(--color-accent-dark);
+    transform: translateY(-1px);
+  }
+
+  .pdf-export__button:focus-visible {
+    outline: 2px solid var(--color-border-focus);
+    outline-offset: 2px;
+  }
+
+  .pdf-export__button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+
+  .pdf-export__button.is-loading {
+    opacity: 0.8;
+  }
+
+  .pdf-export__icon {
+    width: 1em;
+    height: 1em;
+    flex-shrink: 0;
+  }
+
+  .pdf-export__text {
+    display: none;
+  }
+
+  @media (min-width: 768px) {
+    .pdf-export__text {
+      display: inline;
+    }
+
+    .pdf-export__button {
+      padding: var(--space-2) var(--space-4);
+    }
+  }
+
+  /* Status message */
+  .pdf-export__status {
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+    height: 1.5em;
+    overflow: hidden;
+    transition: all var(--transition-fast);
+  }
+
+  .pdf-export__status.is-loading {
+    color: var(--color-info);
+  }
+
+  .pdf-export__status.is-success {
+    color: var(--color-success);
+    font-weight: var(--weight-medium);
+  }
+
+  .pdf-export__status.is-error {
+    color: var(--color-error);
+    font-weight: var(--weight-medium);
+  }
+
+  /* Reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    .pdf-export__button {
+      transition: background-color var(--transition-fast);
+    }
+
+    .pdf-export__button:hover:not(:disabled) {
+      transform: none;
+    }
+  }
+
+  /* Mobile adjustments */
+  @media (max-width: 639px) {
+    .pdf-export__button {
+      padding: var(--space-2);
+      font-size: var(--text-xs);
+    }
+
+    .pdf-export__icon {
+      width: 1.2em;
+      height: 1.2em;
+    }
+  }
+</style>
