@@ -21,6 +21,16 @@ function addHostVariants(hosts: Set<string>, value: string | null): void {
   hosts.add(value.replace(/:\d+$/, ''));
 }
 
+function getInternalOrigin(): string {
+  const customOrigin = process.env.PDF_RENDER_ORIGIN;
+  if (customOrigin) {
+    return customOrigin;
+  }
+
+  const port = process.env.PORT ?? '80';
+  return `http://127.0.0.1:${port}`;
+}
+
 function getSafeFilename(urlValue: string): string {
   const pathname = new URL(urlValue).pathname;
   const raw = pathname.split('/').filter(Boolean).join('-') || 'documento';
@@ -85,6 +95,8 @@ export const GET: APIRoute = async ({ request, site }) => {
   }
 
   parsedUrl.searchParams.set('pdf', 'true');
+  const internalOrigin = getInternalOrigin();
+  const renderUrl = new URL(`${parsedUrl.pathname}${parsedUrl.search}`, internalOrigin);
 
   let browser: Awaited<ReturnType<typeof puppeteer.launch>> | undefined;
 
@@ -96,8 +108,15 @@ export const GET: APIRoute = async ({ request, site }) => {
     });
 
     const page = await browser.newPage();
+    page.setDefaultNavigationTimeout(45000);
+    page.setDefaultTimeout(45000);
     await page.setViewport({ width: 1400, height: 1800, deviceScaleFactor: 2 });
-    await page.goto(parsedUrl.toString(), { waitUntil: 'networkidle0' });
+    await page.goto(renderUrl.toString(), { waitUntil: 'domcontentloaded', timeout: 45000 });
+    try {
+      await page.waitForNetworkIdle({ idleTime: 500, timeout: 8000 });
+    } catch {
+      // Continue even if background requests keep running.
+    }
     await page.emulateMediaType('print');
     await page.addStyleTag({
       content: `
