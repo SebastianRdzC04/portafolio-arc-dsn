@@ -12,24 +12,37 @@ interface Props {
   tags?: string[];
   subjectSlug: string;
   unitSlug: string;
+  isPdf?: boolean;
+  pdfDownloadUrl?: string;
 }
 
-const { title, description, date, tags, subjectSlug, unitSlug } = Astro.props;
+const {
+  title,
+  description,
+  date,
+  tags,
+  subjectSlug,
+  unitSlug,
+  isPdf = false,
+  pdfDownloadUrl,
+} = Astro.props;
 const subject = getSubjectBySlug(subjectSlug);
 const subjectName = subject?.name ?? slugToLabel(subjectSlug);
 const unitLabel = slugToLabel(unitSlug);
 ---
 
-<Layout title={`${title} — ${subjectName}`} description={description}>
-  <article class="work container">
-    <Breadcrumbs
-      items={[
-        { label: 'Inicio', href: '/' },
-        { label: subjectName, href: `/${subjectSlug}/` },
-        { label: unitLabel },
-        { label: title },
-      ]}
-    />
+<Layout title={`${title} — ${subjectName}`} description={description} isPdf={isPdf}>
+  <article class:list={['work', 'container', { 'work--pdf': isPdf }]}> 
+    {!isPdf && (
+      <Breadcrumbs
+        items={[
+          { label: 'Inicio', href: '/' },
+          { label: subjectName, href: `/${subjectSlug}/` },
+          { label: unitLabel },
+          { label: title },
+        ]}
+      />
+    )}
 
     <header class="work__header">
       <div class="work__header-top">
@@ -45,14 +58,7 @@ const unitLabel = slugToLabel(unitSlug);
             </div>
           )}
         </div>
-        <PdfExportButton
-          title={title}
-          description={description}
-          date={date}
-          subjectName={subjectName}
-          unitLabel={unitLabel}
-          tags={tags}
-        />
+        {!isPdf && pdfDownloadUrl && <PdfExportButton href={pdfDownloadUrl} title={title} />}
       </div>
       <h1 class="work__title">{title}</h1>
       <p class="work__description">{description}</p>
@@ -68,6 +74,12 @@ const unitLabel = slugToLabel(unitSlug);
   .work {
     max-width: var(--max-width-narrow);
     padding-top: var(--space-8);
+  }
+
+  .work--pdf {
+    max-width: 840px;
+    padding-top: var(--space-6);
+    margin: 0 auto;
   }
 
   .work__header {
@@ -216,6 +228,11 @@ const unitLabel = slugToLabel(unitSlug);
     margin: var(--space-6) 0;
   }
 
+  .work__content :global(p:has(> img)) {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
   .work__content :global(table) {
     width: 100%;
     border-collapse: collapse;
@@ -256,5 +273,58 @@ const unitLabel = slugToLabel(unitSlug);
   .work__content :global(strong) {
     font-weight: var(--weight-semibold);
     color: var(--color-text);
+  }
+
+  @media print {
+    .work {
+      max-width: 100%;
+      padding-top: 0;
+    }
+
+    body {
+      font-size: 12pt;
+      line-height: 1.6;
+    }
+
+    .work__header {
+      margin-bottom: var(--space-6);
+      padding-bottom: var(--space-6);
+    }
+
+    .work__content :global(img) {
+      break-inside: avoid;
+      page-break-inside: avoid;
+      max-width: 100%;
+    }
+
+    .work__content :global(p:has(> img)),
+    .work__content :global(figure),
+    .work__content :global(.no-break) {
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+
+    .work__content :global(pre),
+    .work__content :global(code),
+    .work__content :global(figure) {
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+
+    .work__content :global(h1),
+    .work__content :global(h2),
+    .work__content :global(h3) {
+      page-break-after: avoid;
+    }
+
+    .work__content :global(.page-break) {
+      page-break-before: always;
+      break-before: page;
+    }
+
+    .work__content :global(p) {
+      orphans: 3;
+      widows: 3;
+    }
   }
 </style>

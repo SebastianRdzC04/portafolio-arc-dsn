@@ -9,15 +9,12 @@
     "astro": "astro"
   },
   "dependencies": {
+    "@astrojs/node": "^9.5.5",
     "astro": "^5.18.0",
-    "html2canvas": "^1.4.1",
-    "html2pdf.js": "^0.14.0",
-    "jspdf": "^4.2.1",
-    "marked": "^17.0.4"
+    "puppeteer": "^24.40.0"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.6",
-    "@types/html2pdf.js": "^0.10.0",
     "typescript": "^5.9.3"
   }
 }

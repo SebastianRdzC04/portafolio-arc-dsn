@@ -1,26 +1,44 @@
-# ── Stage 1: build ────────────────────────────────────────────────────────────
-FROM node:22-alpine AS builder
+# ── Stage 1: install deps ─────────────────────────────────────────────────────
+FROM node:22-alpine AS deps
 
 WORKDIR /app
 
-# Install dependencies
 COPY package*.json ./
 RUN npm ci
 
-# Copy source and build
+# ── Stage 2: build app ────────────────────────────────────────────────────────
+FROM node:22-alpine AS builder
+
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npm run build
 
-# ── Stage 2: serve ────────────────────────────────────────────────────────────
-FROM nginx:alpine AS runner
+# ── Stage 3: production runtime ───────────────────────────────────────────────
+FROM node:22-alpine AS runner
 
-# Remove default nginx static assets
-RUN rm -rf /usr/share/nginx/html/*
+WORKDIR /app
+ENV NODE_ENV=production
+ENV HOST=0.0.0.0
+ENV PORT=80
 
-# Copy built site from builder stage
-COPY --from=builder /app/dist /usr/share/nginx/html
+COPY package*.json ./
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+COPY --from=builder /app/dist ./dist
 
-# Copy custom nginx config
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Chromium deps for Puppeteer in Alpine
+RUN apk add --no-cache \
+  chromium \
+  nss \
+  freetype \
+  harfbuzz \
+  ca-certificates \
+  ttf-freefont
+
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 
 EXPOSE 80
+
+CMD ["node", "./dist/server/entry.mjs"]

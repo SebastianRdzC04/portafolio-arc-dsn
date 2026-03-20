@@ -6,11 +6,13 @@ import '../styles/global.css';
 interface Props {
   title?: string;
   description?: string;
+  isPdf?: boolean;
 }
 
 const {
   title = 'Portafolio Académico — Sebastián Rodríguez Contreras',
   description = 'Portafolio de trabajos académicos de Ingeniería en Desarrollo de Software.',
+  isPdf = false,
 } = Astro.props;
 ---
 
@@ -32,11 +34,11 @@ const {
     <title>{title}</title>
   </head>
   <body>
-    <Header />
+    {!isPdf && <Header />}
     <main id="main-content">
       <slot />
     </main>
-    <Footer />
+    {!isPdf && <Footer />}
   </body>
 </html>
 

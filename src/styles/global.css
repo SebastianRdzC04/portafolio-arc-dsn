@@ -336,3 +336,29 @@ pre code {
   white-space: nowrap;
   border-width: 0;
 }
+
+/* ---------- PDF helpers ---------- */
+
+.no-break {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.page-break {
+  page-break-before: always;
+  break-before: page;
+}
+
+@media print {
+  .header,
+  .footer,
+  .pdf-export,
+  .breadcrumbs {
+    display: none !important;
+  }
+
+  main {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+  }
+}

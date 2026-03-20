@@ -4,6 +4,8 @@ import { getCollection, render } from 'astro:content';
 import { parseWorkId } from '../../lib/utils';
 import type { GetStaticPaths, InferGetStaticPropsType } from 'astro';
 
+export const prerender = true;
+
 export const getStaticPaths = (async () => {
   const allWorks = await getCollection('trabajos', ({ data }) => !data.draft);
 
@@ -24,6 +26,9 @@ type Props = InferGetStaticPropsType<typeof getStaticPaths>;
 
 const { entry, parsed } = Astro.props as Props;
 const { Content } = await render(entry);
+const isPdf = Astro.url.searchParams.get('pdf') === 'true';
+const pdfTargetPath = `${Astro.url.pathname}?pdf=true`;
+const pdfDownloadUrl = `/api/pdf?url=${encodeURIComponent(pdfTargetPath)}`;
 ---
 
 <WorkLayout
@@ -33,6 +38,8 @@ const { Content } = await render(entry);
   tags={entry.data.tags}
   subjectSlug={parsed.subject}
   unitSlug={parsed.unit}
+  isPdf={isPdf}
+  pdfDownloadUrl={pdfDownloadUrl}
 >
   <Content />
 </WorkLayout>

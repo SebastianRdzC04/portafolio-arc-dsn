@@ -1,32 +1,16 @@
 ---
-import { generatePdfFilename } from '../lib/pdf-export';
-
 interface Props {
+  href: string;
   title: string;
-  description: string;
-  date: Date;
-  subjectName: string;
-  unitLabel: string;
-  tags?: string[];
 }
 
-const { title, description, date, subjectName, unitLabel, tags } = Astro.props;
-const filename = generatePdfFilename(title, date);
-const exportPayload = JSON.stringify({
-  filename,
-  title,
-  description,
-  date: date.toISOString(),
-  subject: subjectName,
-  unit: unitLabel,
-  tags: tags ?? [],
-});
+const { href, title } = Astro.props;
 ---
 
 <div class="pdf-export">
-  <button
+  <a
     class="pdf-export__button"
-    data-pdf-payload={exportPayload}
+    href={href}
     aria-label={`Descargar "${title}" como PDF`}
   >
     <svg
@@ -46,95 +30,8 @@ const exportPayload = JSON.stringify({
       <line x1="9" y1="15" x2="15" y2="15"></line>
     </svg>
     <span class="pdf-export__text">Descargar PDF</span>
-  </button>
-  <div class="pdf-export__status" role="status" aria-live="polite"></div>
+  </a>
 </div>
-
-<script>
-  import { exportWorkToPdf } from '../lib/pdf-export';
-
-  // Find all PDF export buttons
-  const buttons = document.querySelectorAll('.pdf-export__button');
-
-  buttons.forEach((button) => {
-    const buttonEl = button as HTMLButtonElement;
-    const statusEl = buttonEl.closest('.pdf-export')?.querySelector('.pdf-export__status');
-
-    buttonEl.addEventListener('click', async () => {
-      const rawPayload = buttonEl.getAttribute('data-pdf-payload') || '{}';
-      const parsed = JSON.parse(rawPayload) as {
-        filename?: string;
-        title?: string;
-        description?: string;
-        date?: string;
-        subject?: string;
-        unit?: string;
-        tags?: string[];
-      };
-      const filename = parsed.filename || 'trabajo.pdf';
-      const title = parsed.title || 'Trabajo';
-      const description = parsed.description || '';
-      const date = parsed.date ? new Date(parsed.date) : undefined;
-      const subject = parsed.subject || '';
-      const unit = parsed.unit || '';
-      const tags = Array.isArray(parsed.tags) ? parsed.tags : [];
-
-      try {
-        // Show loading state
-        buttonEl.disabled = true;
-        buttonEl.classList.add('is-loading');
-
-        if (statusEl) {
-          statusEl.textContent = 'Generando PDF...';
-          statusEl.classList.add('is-loading');
-        }
-
-        // Generate and download PDF
-        await exportWorkToPdf({
-          filename,
-          title,
-          description,
-          date,
-          subject,
-          unit,
-          tags,
-        });
-
-        // Success feedback
-        if (statusEl) {
-          statusEl.textContent = '✓ PDF descargado';
-          statusEl.classList.remove('is-loading');
-          statusEl.classList.add('is-success');
-
-          setTimeout(() => {
-            statusEl.textContent = '';
-            statusEl.classList.remove('is-success');
-          }, 3000);
-        }
-      } catch (error) {
-        // Error feedback
-        const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
-
-        if (statusEl) {
-          statusEl.textContent = `✗ ${errorMessage}`;
-          statusEl.classList.remove('is-loading');
-          statusEl.classList.add('is-error');
-
-          setTimeout(() => {
-            statusEl.textContent = '';
-            statusEl.classList.remove('is-error');
-          }, 5000);
-        }
-
-        console.error('PDF Export Error:', error);
-      } finally {
-        // Reset button state
-        buttonEl.disabled = false;
-        buttonEl.classList.remove('is-loading');
-      }
-    });
-  });
-</script>
 
 <style>
   .pdf-export {
@@ -169,15 +66,6 @@ const exportPayload = JSON.stringify({
     outline-offset: 2px;
   }
 
-  .pdf-export__button:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-  }
-
-  .pdf-export__button.is-loading {
-    opacity: 0.8;
-  }
-
   .pdf-export__icon {
     width: 1em;
     height: 1em;
@@ -196,29 +84,6 @@ const exportPayload = JSON.stringify({
     .pdf-export__button {
       padding: var(--space-2) var(--space-4);
     }
-  }
-
-  /* Status message */
-  .pdf-export__status {
-    font-size: var(--text-sm);
-    color: var(--color-text-muted);
-    height: 1.5em;
-    overflow: hidden;
-    transition: all var(--transition-fast);
-  }
-
-  .pdf-export__status.is-loading {
-    color: var(--color-info);
-  }
-
-  .pdf-export__status.is-success {
-    color: var(--color-success);
-    font-weight: var(--weight-medium);
-  }
-
-  .pdf-export__status.is-error {
-    color: var(--color-error);
-    font-weight: var(--weight-medium);
   }
 
   /* Reduced motion */
