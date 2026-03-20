@@ -3,6 +3,24 @@ import type { APIRoute } from 'astro';
 
 const pdfHeaderHeight = '36px';
 
+function firstHeaderValue(value: string | null): string | null {
+  if (!value) {
+    return null;
+  }
+
+  const first = value.split(',')[0]?.trim();
+  return first || null;
+}
+
+function addHostVariants(hosts: Set<string>, value: string | null): void {
+  if (!value) {
+    return;
+  }
+
+  hosts.add(value);
+  hosts.add(value.replace(/:\d+$/, ''));
+}
+
 function getSafeFilename(urlValue: string): string {
   const pathname = new URL(urlValue).pathname;
   const raw = pathname.split('/').filter(Boolean).join('-') || 'documento';
@@ -25,21 +43,41 @@ export const GET: APIRoute = async ({ request, site }) => {
     return new Response('Falta el query param "url".', { status: 400 });
   }
 
-  const origin = requestUrl.origin;
+  const forwardedProto = firstHeaderValue(request.headers.get('x-forwarded-proto'));
+  const forwardedHost = firstHeaderValue(request.headers.get('x-forwarded-host'));
+  const forwardedOrigin = firstHeaderValue(request.headers.get('x-forwarded-origin'));
+  const hostHeader = firstHeaderValue(request.headers.get('host'));
+  const siteOrigin = site ? new URL(site).origin : null;
+  const forwardedComposedOrigin =
+    forwardedProto && forwardedHost ? `${forwardedProto}://${forwardedHost}` : null;
+  const publicOrigin = forwardedOrigin ?? forwardedComposedOrigin ?? siteOrigin ?? requestUrl.origin;
+
   let parsedUrl: URL;
 
   try {
-    parsedUrl = new URL(targetUrl, origin);
+    parsedUrl = new URL(targetUrl, publicOrigin);
   } catch {
     return new Response('El query param "url" no es valido.', { status: 400 });
   }
 
-  const allowedHosts = new Set<string>([requestUrl.host, requestUrl.hostname]);
+  const allowedHosts = new Set<string>();
+  addHostVariants(allowedHosts, requestUrl.host);
+  addHostVariants(allowedHosts, requestUrl.hostname);
+  addHostVariants(allowedHosts, hostHeader);
+  addHostVariants(allowedHosts, forwardedHost);
 
   if (site) {
     const siteUrl = new URL(site);
-    allowedHosts.add(siteUrl.host);
-    allowedHosts.add(siteUrl.hostname);
+    addHostVariants(allowedHosts, siteUrl.host);
+    addHostVariants(allowedHosts, siteUrl.hostname);
+  }
+
+  try {
+    const publicUrl = new URL(publicOrigin);
+    addHostVariants(allowedHosts, publicUrl.host);
+    addHostVariants(allowedHosts, publicUrl.hostname);
+  } catch {
+    // ignore malformed fallback origin
   }
 
   if (!allowedHosts.has(parsedUrl.host) && !allowedHosts.has(parsedUrl.hostname)) {
