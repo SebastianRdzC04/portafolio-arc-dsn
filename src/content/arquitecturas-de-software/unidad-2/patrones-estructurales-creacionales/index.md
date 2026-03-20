@@ -16,7 +16,9 @@ type: "pruebas-sumativas"
 
 
 
-Repositorio: https://github.com/SebastianRdzC04/elroble-system.git 
+Repositorio: https://github.com/SebastianRdzC04/elroble-system.git **Intente hacerlo publico pero me pide acceso con git mobile y no tengo internet en el cel, pero cuando tenga internet hago publico el repositorio para que pueda verificarlo**
+
+
 
 
 **Análisis exhaustivo de 12 patrones de diseño aplicados al proyecto**
@@ -2351,67 +2353,6 @@ export class InstrumentationProxy<T> {
 1. **Prototype para Formularios:** Reducir código duplicado
 2. **Flyweight para Iconos:** Optimizar memoria
 3. **Factory Method avanzado:** Soporte multi-BD
-
----
-
-## Instrucciones para Generar PDFs
-
-Ejecuta los siguientes comandos en tu terminal:
-
-### PDF de Patrones Creacionales
-
-```bash
-# Extraer sección creacionales y generar PDF
-sed -n '/^# PATRONES CREACIONALES/,/^# PATRONES ESTRUCTURALES/p' PATRONES_DISENO.md \
-  | head -n -1 \
-  | pandoc -f markdown -t pdf \
-    --pdf-engine=xelatex \
-    --toc \
-    --metadata title="Patrones Creacionales - elroble-system" \
-    --metadata author="Análisis de Arquitectura" \
-    -o PATRONES_CREACIONALES.pdf
-```
-
-### PDF de Patrones Estructurales
-
-```bash
-# Extraer sección estructurales y generar PDF
-sed -n '/^# PATRONES ESTRUCTURALES/,$p' PATRONES_DISENO.md \
-  | pandoc -f markdown -t pdf \
-    --pdf-engine=xelatex \
-    --toc \
-    --metadata title="Patrones Estructurales - elroble-system" \
-    --metadata author="Análisis de Arquitectura" \
-    -o PATRONES_ESTRUCTURALES.pdf
-```
-
-### PDF Completo
-
-```bash
-# Generar PDF con todo el documento
-pandoc PATRONES_DISENO.md -f markdown -t pdf \
-  --pdf-engine=xelatex \
-  --toc \
-  --metadata title="Patrones de Diseño - elroble-system" \
-  --metadata author="Análisis de Arquitectura" \
-  -o PATRONES_DISENO_COMPLETO.pdf
-```
-
----
-
-## Requisitos Previos para Generar PDFs
-
-```bash
-# Instalar pandoc (si no lo tienes)
-# En Ubuntu/Debian:
-sudo apt-get install pandoc texlive-xetex texlive-latex-extra
-
-# En macOS con Homebrew:
-brew install pandoc basictex
-
-# En Windows con Chocolatey:
-choco install pandoc miktex
-```
 
 ---
 
