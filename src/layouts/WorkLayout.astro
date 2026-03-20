@@ -45,7 +45,14 @@ const unitLabel = slugToLabel(unitSlug);
             </div>
           )}
         </div>
-        <PdfExportButton title={title} date={date} />
+        <PdfExportButton
+          title={title}
+          description={description}
+          date={date}
+          subjectName={subjectName}
+          unitLabel={unitLabel}
+          tags={tags}
+        />
       </div>
       <h1 class="work__title">{title}</h1>
       <p class="work__description">{description}</p>

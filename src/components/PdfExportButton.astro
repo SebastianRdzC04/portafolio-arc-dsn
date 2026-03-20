@@ -3,19 +3,30 @@ import { generatePdfFilename } from '../lib/pdf-export';
 
 interface Props {
   title: string;
+  description: string;
   date: Date;
+  subjectName: string;
+  unitLabel: string;
+  tags?: string[];
 }
 
-const { title, date } = Astro.props;
+const { title, description, date, subjectName, unitLabel, tags } = Astro.props;
 const filename = generatePdfFilename(title, date);
+const exportPayload = JSON.stringify({
+  filename,
+  title,
+  description,
+  date: date.toISOString(),
+  subject: subjectName,
+  unit: unitLabel,
+  tags: tags ?? [],
+});
 ---
 
 <div class="pdf-export">
   <button
     class="pdf-export__button"
-    data-pdf-filename={filename}
-    data-pdf-title={title}
-    data-pdf-date={date.toISOString()}
+    data-pdf-payload={exportPayload}
     aria-label={`Descargar "${title}" como PDF`}
   >
     <svg
@@ -50,10 +61,23 @@ const filename = generatePdfFilename(title, date);
     const statusEl = buttonEl.closest('.pdf-export')?.querySelector('.pdf-export__status');
 
     buttonEl.addEventListener('click', async () => {
-      const filename = buttonEl.getAttribute('data-pdf-filename') || 'trabajo.pdf';
-      const title = buttonEl.getAttribute('data-pdf-title') || 'Trabajo';
-      const dateStr = buttonEl.getAttribute('data-pdf-date');
-      const date = dateStr ? new Date(dateStr) : undefined;
+      const rawPayload = buttonEl.getAttribute('data-pdf-payload') || '{}';
+      const parsed = JSON.parse(rawPayload) as {
+        filename?: string;
+        title?: string;
+        description?: string;
+        date?: string;
+        subject?: string;
+        unit?: string;
+        tags?: string[];
+      };
+      const filename = parsed.filename || 'trabajo.pdf';
+      const title = parsed.title || 'Trabajo';
+      const description = parsed.description || '';
+      const date = parsed.date ? new Date(parsed.date) : undefined;
+      const subject = parsed.subject || '';
+      const unit = parsed.unit || '';
+      const tags = Array.isArray(parsed.tags) ? parsed.tags : [];
 
       try {
         // Show loading state
@@ -69,8 +93,11 @@ const filename = generatePdfFilename(title, date);
         await exportWorkToPdf({
           filename,
           title,
+          description,
           date,
-          elementSelector: '.work__content',
+          subject,
+          unit,
+          tags,
         });
 
         // Success feedback

@@ -1,199 +1,234 @@
-import { jsPDF } from 'jspdf';
-import html2canvas from 'html2canvas';
-
-interface PdfExportOptions {
+export interface PdfExportOptions {
   filename: string;
   title: string;
+  description: string;
+  subject: string;
+  unit: string;
+  tags: string[];
   date?: Date;
-  elementSelector?: string;
 }
 
-interface PdfDimensions {
-  pageWidth: number;
-  pageHeight: number;
-  margins: { top: number; bottom: number; left: number; right: number };
-}
-
-const PDF_DIMENSIONS: PdfDimensions = {
-  pageWidth: 210,
-  pageHeight: 297,
-  margins: { top: 15, bottom: 15, left: 15, right: 15 },
-};
-
-/**
- * Creates a clone of the content element with PDF-specific styling.
- * Ensures images are loaded before capturing.
- */
-async function prepareContentForCapture(element: HTMLElement): Promise<HTMLElement> {
-  const clone = element.cloneNode(true) as HTMLElement;
-  const container = document.createElement('div');
-
-  // Apply PDF-specific styles
-  container.style.cssText = `
-    position: fixed;
-    left: -9999px;
-    top: -9999px;
-    width: 1200px;
-    background-color: white;
-    padding: 20px;
-    font-family: inherit;
-    z-index: -9999;
-  `;
-
-  container.appendChild(clone);
-  document.body.appendChild(container);
-
-  // Wait for all images to load
-  const images = container.querySelectorAll('img');
-  const imagePromises = Array.from(images).map(
-    (img) =>
-      new Promise<void>((resolve) => {
-        if (img.complete) {
-          resolve();
-        } else {
-          img.onload = () => resolve();
-          img.onerror = () => resolve();
-        }
-      })
-  );
-
-  await Promise.all(imagePromises);
-
-  return container;
-}
-
-/**
- * Renders content canvas with high quality (2x scale for retina).
- * Handles long content by capturing in chunks if needed.
- */
-async function captureContentAsCanvas(
-  element: HTMLElement,
-  maxWidth: number = 1000
-): Promise<HTMLCanvasElement> {
-  const canvas = await html2canvas(element, {
-    scale: 2,
-    backgroundColor: '#ffffff',
-    logging: false,
-    useCORS: true,
-    width: maxWidth,
-    allowTaint: true,
-  });
-
-  return canvas;
-}
-
-/**
- * Calculates how many PDF pages are needed based on content height.
- */
-function calculatePages(canvasHeight: number, pdfHeight: number): number {
-  const contentHeight = (canvasHeight / 96) * 25.4;
-  return Math.ceil(contentHeight / pdfHeight);
-}
-
-/**
- * Exports work content to a paginated PDF.
- * Handles multi-page content automatically with proper scaling.
- */
-export async function exportWorkToPdf(options: PdfExportOptions): Promise<void> {
-  const { filename, title, date, elementSelector = '.work__content' } = options;
-
-  try {
-    // Get content element
-    const contentElement = document.querySelector(elementSelector);
-    if (!contentElement) {
-      throw new Error(`No se encontró el elemento: ${elementSelector}`);
-    }
-
-    // Prepare content and wait for images
-    const container = await prepareContentForCapture(contentElement as HTMLElement);
-
-    // Capture content as canvas
-    const canvas = await captureContentAsCanvas(container);
-
-    // Create PDF
-    const { pageWidth, pageHeight, margins } = PDF_DIMENSIONS;
-    const contentWidth = pageWidth - margins.left - margins.right;
-    const contentHeight = pageHeight - margins.top - margins.bottom;
-
-    const pdfContentHeight = (contentHeight * canvas.width) / contentWidth;
-    const pageCount = calculatePages(canvas.height, pdfContentHeight);
-
-    const pdf = new jsPDF({
-      orientation: 'portrait',
-      unit: 'mm',
-      format: 'a4',
-    });
-
-    // Add pages
-    for (let page = 0; page < pageCount; page++) {
-      if (page > 0) {
-        pdf.addPage();
-      }
-
-      const imageData = canvas.toDataURL('image/png');
-
-      pdf.addImage(imageData, 'PNG', margins.left, margins.top, contentWidth, pdfContentHeight, undefined, 'FAST');
-
-      // Add footer with page number and metadata
-      if (pageCount > 1 || date) {
-        pdf.setFontSize(8);
-        pdf.setTextColor(128, 128, 128);
-
-        const footerY = pageHeight - 10;
-
-        if (date) {
-          const dateStr = new Intl.DateTimeFormat('es-ES', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-          }).format(date);
-          pdf.text(`${title} • ${dateStr}`, margins.left, footerY);
-        }
-
-        if (pageCount > 1) {
-          pdf.text(`Página ${page + 1} de ${pageCount}`, pageWidth - margins.right - 20, footerY, {
-            align: 'right',
-          });
-        }
-      }
-    }
-
-    // Add metadata
-    pdf.setProperties({
-      title,
-      author: 'Portafolio Académico',
-      creator: 'Astro PDF Export',
-    });
-
-    // Save and download
-    pdf.save(filename);
-
-    // Cleanup
-    document.body.removeChild(container);
-  } catch (error) {
-    document.body.querySelectorAll('div[style*="left: -9999px"]').forEach((el) => el.remove());
-
-    const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
-    console.error('Error exporting PDF:', errorMessage);
-    throw new Error(`Error al generar PDF: ${errorMessage}`);
+function formatDate(date?: Date): string {
+  if (!date) {
+    return 'Sin fecha';
   }
+
+  return new Intl.DateTimeFormat('es-ES', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  }).format(date);
 }
 
-/**
- * Generates a clean filename from title and date.
- * Format: "titulo-trabajo-2026-03-19.pdf"
- */
 export function generatePdfFilename(title: string, date?: Date): string {
-  const slug = title
+  const safeTitle = title;
+  const slug = safeTitle
     .toLowerCase()
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/[^\w\s-]/g, '')
     .replace(/\s+/g, '-')
     .replace(/-+/g, '-')
-    .slice(0, 50);
+    .slice(0, 60);
 
-  const dateStr = date ? date.toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+  const datePart = (date ?? new Date()).toISOString().split('T')[0];
+  return `${slug}-${datePart}.pdf`;
+}
 
-  return `${slug}-${dateStr}.pdf`;
+function createCoverPage(options: PdfExportOptions): HTMLDivElement {
+  const coverPage = document.createElement('div');
+  coverPage.className = 'pdf-cover-page';
+  
+  const tagsHtml = options.tags.length > 0
+    ? `<div class="pdf-cover-tags">${options.tags.join(' | ')}</div>`
+    : '';
+
+  coverPage.innerHTML = `
+    <div class="pdf-cover-header">PORTAFOLIO ACADÉMICO</div>
+    <div class="pdf-cover-title-container">
+      <h1 class="pdf-cover-title">${options.title}</h1>
+      <p class="pdf-cover-description">${options.description}</p>
+    </div>
+    <div class="pdf-cover-meta">
+      <div class="pdf-cover-meta-item"><strong>Materia:</strong> ${options.subject}</div>
+      <div class="pdf-cover-meta-item"><strong>Unidad:</strong> ${options.unit}</div>
+      <div class="pdf-cover-meta-item"><strong>Fecha:</strong> ${formatDate(options.date)}</div>
+      ${tagsHtml}
+    </div>
+  `;
+  return coverPage;
+}
+
+export async function exportWorkToPdf(options: PdfExportOptions): Promise<void> {
+  try {
+    // Dynamically import html2pdf
+    // @ts-ignore
+    const html2pdfModule = await import('html2pdf.js');
+    const html2pdf = html2pdfModule.default || html2pdfModule;
+
+    // Find the rendered markdown content
+    const contentEl = document.querySelector('.work__content');
+    if (!contentEl) {
+      throw new Error('No se encontró el contenido del trabajo para exportar.');
+    }
+
+    // Clone the content so we don't mess up the live DOM
+    const clone = contentEl.cloneNode(true) as HTMLElement;
+    
+    // Create a container for the PDF
+    const container = document.createElement('div');
+    container.className = 'pdf-export-container work'; // Include 'work' to inherit any .work styles if needed
+    
+    // Inject print-specific styles
+    const style = document.createElement('style');
+    style.innerHTML = `
+      .pdf-export-container {
+        font-family: Arial, sans-serif;
+        color: #0f172a;
+        background: white;
+        padding: 0;
+      }
+      .pdf-cover-page {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        height: 250mm; /* approximate A4 height minus margins to center content */
+        text-align: left;
+      }
+      .pdf-cover-header {
+        font-size: 14px;
+        font-weight: bold;
+        color: #1d4ed8;
+        margin-bottom: 40px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+      .pdf-cover-title {
+        font-size: 32px;
+        font-weight: bold;
+        margin-bottom: 16px;
+        line-height: 1.2;
+      }
+      .pdf-cover-description {
+        font-size: 18px;
+        color: #475569;
+        margin-bottom: 60px;
+        line-height: 1.5;
+        max-width: 600px;
+      }
+      .pdf-cover-meta {
+        border-top: 2px solid #e2e8f0;
+        padding-top: 30px;
+      }
+      .pdf-cover-meta-item {
+        font-size: 14px;
+        margin-bottom: 8px;
+        color: #334155;
+      }
+      .pdf-cover-tags {
+        margin-top: 20px;
+        font-size: 12px;
+        color: #64748b;
+      }
+      
+      /* Ensure images fit and code blocks wrap */
+      .pdf-export-container img {
+        max-width: 100% !important;
+        height: auto !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        display: block !important;
+        margin: 20px auto !important;
+      }
+      /* Prevent the paragraph containing the image from breaking */
+      .pdf-export-container p:has(img) {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+      }
+      .pdf-export-container pre {
+        white-space: pre-wrap !important;
+        word-break: break-word !important;
+        page-break-inside: avoid;
+        background: #f8fafc;
+        padding: 16px;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+      }
+      .pdf-export-container code {
+        font-family: monospace;
+      }
+      .pdf-export-container h1, .pdf-export-container h2, .pdf-export-container h3 {
+        page-break-after: avoid;
+        page-break-inside: avoid;
+      }
+      .pdf-export-container blockquote {
+        page-break-inside: avoid;
+      }
+      .pdf-export-container table {
+        page-break-inside: avoid;
+      }
+      .pdf-export-container tr {
+        page-break-inside: avoid;
+        page-break-after: auto;
+      }
+    `;
+    container.appendChild(style);
+    
+    // Add cover page
+    container.appendChild(createCoverPage(options));
+    
+    // Add page break before content
+    const pageBreak = document.createElement('div');
+    pageBreak.className = 'html2pdf__page-break';
+    container.appendChild(pageBreak);
+
+    // Add actual content
+    container.appendChild(clone);
+
+    // Temporarily attach to DOM to render properly without clipping bugs
+    const wrapper = document.createElement('div');
+    wrapper.style.position = 'absolute';
+    wrapper.style.left = '0';
+    wrapper.style.top = '0';
+    wrapper.style.width = '100%';
+    wrapper.style.zIndex = '-9999';
+    wrapper.style.pointerEvents = 'none';
+
+    container.style.width = '800px'; 
+    container.style.backgroundColor = '#ffffff'; // Force white background for the PDF
+    container.style.color = '#0f172a'; // Force dark text
+    
+    wrapper.appendChild(container);
+    document.body.appendChild(wrapper);
+
+    // Configure html2pdf
+    const opt = {
+      margin: [20, 20, 20, 20] as [number, number, number, number], // 20mm margin
+      filename: options.filename,
+      image: { type: 'jpeg' as const, quality: 0.98 },
+      html2canvas: { 
+        scale: 2, 
+        useCORS: true,
+        letterRendering: true,
+        windowWidth: 800,
+        backgroundColor: '#ffffff'
+      },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const },
+      pagebreak: { 
+        mode: ['css', 'legacy'],
+        avoid: ['img', 'pre', 'blockquote', 'table', 'h1', 'h2', 'h3', '.pdf-no-break']
+      }
+    };
+
+    // Generate PDF
+    await html2pdf().set(opt).from(container).save();
+
+    // Cleanup
+    document.body.removeChild(wrapper);
+    
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+    console.error('Error al exportar PDF:', errorMessage);
+    throw new Error(`Error al generar PDF: ${errorMessage}`);
+  }
 }
