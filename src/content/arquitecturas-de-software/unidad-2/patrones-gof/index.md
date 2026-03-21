@@ -1,9 +1,9 @@
 ---
-title: "Patrones de diseño. (apuntes)"
+title: "Patrones de diseño GoF"
 description: "Distintos patrones de diseño con sus caracteristicas y descripciones"
 date: 2026-03-20
 draft: false
-order: 8
+order: 4
 tags: ["Arquitectura", "Diseño", "Software", "Patrones", "DevOps"]
 ---
 

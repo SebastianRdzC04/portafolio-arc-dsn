@@ -3,7 +3,7 @@ title: "Modelado de Sistema de Riego Agrícola con AMDL"
 description: "Aplicación de AMDL para modelar un sistema embebido de riego agrícola, incluyendo abstracción de hardware, componentes, conectores, funciones y traductor conceptual con adaptabilidad reconfigurable."
 date: 2026-03-17
 draft: false
-order: 1
+order: 2
 tags: ["AMDL", "Arquitectura Embebida", "Modelado", "Reconfigurabilidad"]
 ---
 
