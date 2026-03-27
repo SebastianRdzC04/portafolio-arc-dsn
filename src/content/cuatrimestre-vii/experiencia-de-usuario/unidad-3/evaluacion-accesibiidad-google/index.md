@@ -5,7 +5,7 @@ date: 2026-03-27
 draft: false
 order: 2
 tags:
-  ["UX", "Usabilidad", "Evaluacion Accesibilidad"]
+  ["Jesus Alberto Villarreal Perez", "Sebastian Rodriguez Contreras"]
 author: "Sebastián Rodríguez (Equipo)"
 ---
 
