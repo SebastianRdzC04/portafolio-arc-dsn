@@ -4,6 +4,7 @@ description: "Guía paso a paso para instalar, configurar y asegurar SSH en Linu
 date: 2026-03-07
 draft: false
 tags: ["linux", "ssh", "servidores", "seguridad", "devops"]
+order: 1
 ---
 
 ---

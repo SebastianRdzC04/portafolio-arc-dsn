@@ -4,6 +4,7 @@ description: "Guia de instalacion de un servidor wss y transferencia de archivos
 date: 2026-03-09
 draft: false
 tags: ["linux", "wss", "servidores", "seguridad", "devops", "FTPS"]
+order: 4
 ---
 
 # Manual de Implementación de Servicios FTPS, SCP y WSS con Docker
@@ -31,10 +32,10 @@ Toda la infraestructura se levanta utilizando **Docker Compose**, lo que permite
 
 Antes de comenzar es necesario tener instalado:
 
-* Docker
-* Docker Compose
-* OpenSSL
-* Cliente SSH
+- Docker
+- Docker Compose
+- OpenSSL
+- Cliente SSH
 
 Verificar instalación:
 
@@ -44,7 +45,6 @@ docker compose version
 ```
 
 ### Evidencia
-
 
 ---
 
@@ -76,7 +76,6 @@ lab-transfer/
 
 ### Evidencia
 
-
 ---
 
 # 4. Archivo docker-compose.yml
@@ -87,7 +86,6 @@ Crear el archivo `docker-compose.yml` con el siguiente contenido.
 version: "3.8"
 
 services:
-
   ftps-server:
     image: delfer/alpine-ftp-server
     container_name: lab_ftps
@@ -104,7 +102,6 @@ services:
       - ./certs:/etc/ssl/private:ro
       - ./uploads/ftps:/ftp/admin
     restart: unless-stopped
-
 
   scp-server:
     image: linuxserver/openssh-server
@@ -123,7 +120,6 @@ services:
       - ./uploads/scp:/config
     restart: unless-stopped
 
-
   wss-monitor:
     image: node:20
     container_name: lab_wss
@@ -137,7 +133,6 @@ services:
     command: sh -c "npm install ws chokidar && node server.js"
     restart: unless-stopped
 
-
   web-client:
     image: nginx:alpine
     container_name: lab_nginx
@@ -149,7 +144,6 @@ services:
 ```
 
 ### Evidencia
-
 
 ---
 
@@ -181,7 +175,6 @@ certs/server.key
 
 ### Evidencia
 
-
 ---
 
 # 6. Configuración de acceso SCP con SSH
@@ -202,7 +195,6 @@ Esto permitirá conectarse al servidor **SCP sin contraseña**.
 
 ### Evidencia
 
-
 ---
 
 # 7. Servidor WebSocket (WSS)
@@ -216,39 +208,38 @@ config/server.js
 Código básico del servidor:
 
 ```javascript
-const fs = require("fs")
-const https = require("https")
-const WebSocket = require("ws")
-const chokidar = require("chokidar")
+const fs = require("fs");
+const https = require("https");
+const WebSocket = require("ws");
+const chokidar = require("chokidar");
 
 const server = https.createServer({
   cert: fs.readFileSync("./certs/server.crt"),
-  key: fs.readFileSync("./certs/server.key")
-})
+  key: fs.readFileSync("./certs/server.key"),
+});
 
-const wss = new WebSocket.Server({ server })
+const wss = new WebSocket.Server({ server });
 
-wss.on("connection", ws => {
-  console.log("Cliente conectado")
-})
+wss.on("connection", (ws) => {
+  console.log("Cliente conectado");
+});
 
-const watcher = chokidar.watch("./uploads")
+const watcher = chokidar.watch("./uploads");
 
-watcher.on("add", path => {
-  wss.clients.forEach(client => {
-    client.send("Nuevo archivo: " + path)
-  })
-})
+watcher.on("add", (path) => {
+  wss.clients.forEach((client) => {
+    client.send("Nuevo archivo: " + path);
+  });
+});
 
 server.listen(8443, () => {
-  console.log("Servidor WSS activo")
-})
+  console.log("Servidor WSS activo");
+});
 ```
 
 Este servidor monitorea la carpeta **uploads** y envía notificaciones cuando se agrega un archivo.
 
 ### Evidencia
-
 
 ---
 
@@ -269,7 +260,6 @@ docker ps
 ```
 
 ### Evidencia
-
 
 ---
 
@@ -317,7 +307,6 @@ wss://localhost:8443
 
 ### Evidencia
 
-
 ---
 
 # 10. Detener los servicios
@@ -334,9 +323,9 @@ docker compose down
 
 En este laboratorio se implementó un entorno de servicios utilizando contenedores Docker que incluye:
 
-* Transferencia segura mediante **FTPS**
-* Transferencia de archivos con **SCP**
-* Monitoreo de archivos mediante **WebSocket Secure**
-* Interfaz web mediante **Nginx**
+- Transferencia segura mediante **FTPS**
+- Transferencia de archivos con **SCP**
+- Monitoreo de archivos mediante **WebSocket Secure**
+- Interfaz web mediante **Nginx**
 
 El uso de Docker permite desplegar y replicar fácilmente este tipo de entornos en diferentes sistemas.

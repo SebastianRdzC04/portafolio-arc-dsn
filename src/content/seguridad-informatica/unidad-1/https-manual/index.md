@@ -4,6 +4,7 @@ description: "Guía paso a paso para levantar un servidor Nginx con Docker y Doc
 date: 2026-03-07
 draft: false
 tags: ["docker", "nginx", "devops", "linux", "servidores"]
+order: 2
 ---
 
 ---

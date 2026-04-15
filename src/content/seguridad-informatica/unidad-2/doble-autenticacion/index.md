@@ -3,7 +3,7 @@ title: "Configurar SSH con doble autenticación (2FA) Google Authenticator en Li
 description: "Manual paso a paso para configurar acceso SSH seguro con doble autenticación (contraseña + código TOTP) en un usuario específico, manteniendo otro usuario con acceso por llave privada. Incluye configuración de PAM, SSH y buenas prácticas de seguridad."
 date: 2026-03-18
 draft: false
-order: 1
+order: 2
 tags: ["SSH", "Seguridad", "2FA", "Linux", "DevOps", "Autenticación"]
 ---
 
