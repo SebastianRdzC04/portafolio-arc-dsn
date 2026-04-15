@@ -3,7 +3,7 @@ title: "Patrones Estructurales y Creacionales en elroble-system"
 description: "Análisis exhaustivo de 12 patrones de diseño aplicados al proyecto elroble-system, incluyendo Factory Method, Singleton, Adapter, Decorator y más patrones implementados en el stack AdonisJS, Angular y Next.js."
 date: 2026-03-20
 draft: false
-order: 7
+order: 3
 tags: ["evaluación", "usabilidad", "sumativo", "testing", "UX", "lighthouse", "benchmarking", "rendimiento", "accesibilidad", "El Roble", "automatización"]
 type: "pruebas-sumativas"
 ---
