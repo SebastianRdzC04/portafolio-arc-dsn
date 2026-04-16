@@ -338,4 +338,4 @@ AMDL representa un avance significativo en el modelado de sistemas embebidos, pr
 
 ---
 
-[Volver al Modelo Principal](/arquitecturas-de-software/unidad-2/modelado-sistema-riego-amdl/)
+[Volver al Modelo Principal](/cuatrimestre-vii/arquitecturas-de-software/unidad-2/modelado-sistema-riego-amdl/)

@@ -15,28 +15,98 @@ export function slugToLabel(slug: string): string {
 }
 
 /**
+ * Parsed shape for any markdown entry id in src/content/.
+ */
+export interface ParsedContentId {
+  term: string;
+  subject: string;
+  unit: string;
+  work: string;
+  file: string;
+  isSchedule: boolean;
+}
+
+/**
  * Parse a content-collection entry id into its constituent parts.
  *
- * Given an id like "experiencia-de-usuario/unidad-1/investigacion-ux/index"
- * or "arquitecturas-de-software/unidad-2/modelado-sistema-riego-amdl" (for index.md)
- * returns:
- *   { subject: "experiencia-de-usuario", unit: "unidad-1", work: "investigacion-ux", file: "index" }
+ * Supported formats:
+ * - "cuatrimestre-vii/horario"
+ * - "cuatrimestre-vii/experiencia-de-usuario/unidad-1/investigacion-ux/index"
+ * - "cuatrimestre-vii/arquitecturas-de-software/unidad-2/modelado/documento-tecnico"
+ */
+export function parseContentId(id: string): ParsedContentId {
+  const parts = id.split("/");
+  const term = parts[0] ?? "";
+  const section = parts[1] ?? "";
+
+  if (section === "horario" && parts.length === 2) {
+    return {
+      term,
+      subject: "",
+      unit: "",
+      work: "",
+      file: "horario",
+      isSchedule: true,
+    };
+  }
+
+  return {
+    term,
+    subject: section,
+    unit: parts[2] ?? "",
+    work: parts[3] ?? "",
+    file: parts[4] ?? "index",
+    isSchedule: false,
+  };
+}
+
+/**
+ * Parsed shape for work entries.
  */
 export interface ParsedWorkId {
+  term: string;
   subject: string;
   unit: string;
   work: string;
   file: string;
 }
 
+/**
+ * Parse a work id (non-schedule content).
+ */
 export function parseWorkId(id: string): ParsedWorkId {
-  const parts = id.split("/");
+  const parsed = parseContentId(id);
+
   return {
-    subject: parts[0] ?? "",
-    unit: parts[1] ?? "",
-    work: parts[2] ?? "",
-    file: parts[3] ?? "index", // Default to 'index' if no file part
+    term: parsed.term,
+    subject: parsed.subject,
+    unit: parsed.unit,
+    work: parsed.work,
+    file: parsed.file,
   };
+}
+
+/**
+ * Returns true when the id corresponds to a term schedule file.
+ */
+export function isScheduleEntryId(id: string): boolean {
+  return parseContentId(id).isSchedule;
+}
+
+/**
+ * Returns true when the id corresponds to a work file.
+ */
+export function isWorkEntryId(id: string): boolean {
+  const parsed = parseContentId(id);
+
+  return (
+    !parsed.isSchedule &&
+    parsed.term !== "" &&
+    parsed.subject !== "" &&
+    parsed.unit !== "" &&
+    parsed.work !== "" &&
+    parsed.file !== ""
+  );
 }
 
 /**

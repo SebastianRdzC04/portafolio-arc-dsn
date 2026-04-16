@@ -6,6 +6,8 @@
  */
 
 export interface Subject {
+  /** Must match term folder name (e.g. "cuatrimestre-vii") */
+  termSlug: string;
   /** Must match content folder name (e.g. "experiencia-de-usuario") */
   slug: string;
   /** Full display name */
@@ -22,6 +24,7 @@ export interface Subject {
 
 export const subjects: Subject[] = [
   {
+    termSlug: "cuatrimestre-vii",
     slug: "experiencia-de-usuario",
     name: "Experiencia de Usuario",
     shortName: "UX",
@@ -31,6 +34,7 @@ export const subjects: Subject[] = [
     color: "#2563eb",
   },
   {
+    termSlug: "cuatrimestre-vii",
     slug: "arquitecturas-de-software",
     name: "Arquitecturas de Software",
     shortName: "Arq. SW",
@@ -40,6 +44,7 @@ export const subjects: Subject[] = [
     color: "#7c3aed",
   },
   {
+    termSlug: "cuatrimestre-vii",
     slug: "seguridad-informatica",
     name: "Seguridad Informática",
     shortName: "Seg. Inf.",
@@ -57,7 +62,17 @@ export const student = {
   institution: "Universidad Tecnologica de Torreon",
 } as const;
 
-/** Look up a subject by its slug */
-export function getSubjectBySlug(slug: string): Subject | undefined {
-  return subjects.find((s) => s.slug === slug);
+/** List all subjects for a given term */
+export function getSubjectsByTerm(termSlug: string): Subject[] {
+  return subjects.filter((subject) => subject.termSlug === termSlug);
+}
+
+/** Look up a subject by term slug and subject slug */
+export function getSubjectByTermAndSlug(
+  termSlug: string,
+  subjectSlug: string,
+): Subject | undefined {
+  return subjects.find(
+    (subject) => subject.termSlug === termSlug && subject.slug === subjectSlug,
+  );
 }

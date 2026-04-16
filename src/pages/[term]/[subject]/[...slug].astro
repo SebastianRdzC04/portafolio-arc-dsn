@@ -1,22 +1,23 @@
 ---
-import WorkLayout from '../../layouts/WorkLayout.astro';
+import WorkLayout from '../../../layouts/WorkLayout.astro';
 import { getCollection, render } from 'astro:content';
-import { parseWorkId } from '../../lib/utils';
+import { parseWorkId, isWorkEntryId } from '../../../lib/utils';
 import type { GetStaticPaths, InferGetStaticPropsType } from 'astro';
 
 export const prerender = true;
 
 export const getStaticPaths = (async () => {
-  const allWorks = await getCollection('trabajos', ({ data }) => !data.draft);
+  const allEntries = await getCollection('trabajos', ({ data }) => !data.draft);
+  const allWorks = allEntries.filter((entry) => isWorkEntryId(entry.id));
 
   return allWorks.map((entry) => {
     const parsed = parseWorkId(entry.id);
-    // URL: /<subject>/<unit>/<work> for index, /<subject>/<unit>/<work>/<file> for others
-    const slug = parsed.file === 'index' 
-      ? `${parsed.unit}/${parsed.work}` 
+    // URL: /<term>/<subject>/<unit>/<work> for index, /<term>/<subject>/<unit>/<work>/<file> for others
+    const slug = parsed.file === 'index'
+      ? `${parsed.unit}/${parsed.work}`
       : `${parsed.unit}/${parsed.work}/${parsed.file}`;
     return {
-      params: { subject: parsed.subject, slug },
+      params: { term: parsed.term, subject: parsed.subject, slug },
       props: { entry, parsed },
     };
   });
@@ -36,6 +37,7 @@ const pdfDownloadUrl = `/api/pdf?url=${encodeURIComponent(pdfTargetPath)}`;
   description={entry.data.description}
   date={entry.data.date}
   tags={entry.data.tags}
+  termSlug={parsed.term}
   subjectSlug={parsed.subject}
   unitSlug={parsed.unit}
   isPdf={isPdf}

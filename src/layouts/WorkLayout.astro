@@ -2,14 +2,16 @@
 import Layout from './Layout.astro';
 import Breadcrumbs from '../components/Breadcrumbs.astro';
 import PdfExportButton from '../components/PdfExportButton.astro';
+import { getSubjectByTermAndSlug } from '../data/subjects';
+import { getTermBySlug } from '../data/terms';
 import { formatDate, slugToLabel } from '../lib/utils';
-import { getSubjectBySlug } from '../data/subjects';
 
 interface Props {
   title: string;
   description: string;
   date: Date;
   tags?: string[];
+  termSlug: string;
   subjectSlug: string;
   unitSlug: string;
   isPdf?: boolean;
@@ -21,12 +23,15 @@ const {
   description,
   date,
   tags,
+  termSlug,
   subjectSlug,
   unitSlug,
   isPdf = false,
   pdfDownloadUrl,
 } = Astro.props;
-const subject = getSubjectBySlug(subjectSlug);
+const term = getTermBySlug(termSlug);
+const termName = term?.name ?? slugToLabel(termSlug);
+const subject = getSubjectByTermAndSlug(termSlug, subjectSlug);
 const subjectName = subject?.name ?? slugToLabel(subjectSlug);
 const unitLabel = slugToLabel(unitSlug);
 ---
@@ -37,7 +42,8 @@ const unitLabel = slugToLabel(unitSlug);
       <Breadcrumbs
         items={[
           { label: 'Inicio', href: '/' },
-          { label: subjectName, href: `/${subjectSlug}/` },
+          { label: termName, href: `/${termSlug}/` },
+          { label: subjectName, href: `/${termSlug}/${subjectSlug}/` },
           { label: unitLabel },
           { label: title },
         ]}

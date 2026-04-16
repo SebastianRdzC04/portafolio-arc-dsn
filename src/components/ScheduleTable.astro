@@ -1,0 +1,100 @@
+---
+interface ScheduleCell {
+  value: string;
+  isHeader: boolean;
+}
+
+interface ScheduleRow {
+  cells: ScheduleCell[];
+}
+
+interface Props {
+  rows: ScheduleRow[];
+}
+
+const { rows } = Astro.props;
+
+const [headerRow, ...bodyRows] = rows;
+---
+
+{headerRow ? (
+  <div class="schedule-table__wrapper">
+    <table class="schedule-table">
+      <thead>
+        <tr>
+          {headerRow.cells.map((cell) => (
+            <th scope="col">{cell.value}</th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {bodyRows.map((row) => (
+          <tr>
+            {row.cells.map((cell) =>
+              cell.isHeader ? (
+                <th scope="row">{cell.value}</th>
+              ) : (
+                <td>{cell.value}</td>
+              ),
+            )}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+) : (
+  <p class="schedule-table__empty">No se encontro una tabla valida en el horario.</p>
+)}
+
+<style>
+  .schedule-table__wrapper {
+    width: 100%;
+    overflow-x: auto;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-xl);
+    background-color: var(--color-bg-card);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .schedule-table {
+    width: 100%;
+    min-width: 720px;
+    border-collapse: collapse;
+  }
+
+  .schedule-table th,
+  .schedule-table td {
+    padding: var(--space-3) var(--space-4);
+    text-align: left;
+    vertical-align: top;
+    border-bottom: 1px solid var(--color-border);
+    font-size: var(--text-sm);
+  }
+
+  .schedule-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: var(--z-base);
+    background-color: var(--color-bg-alt);
+    color: var(--color-text);
+    font-family: var(--font-heading);
+    font-weight: var(--weight-semibold);
+  }
+
+  .schedule-table tbody th {
+    background-color: var(--color-accent-bg);
+    color: var(--color-accent-dark);
+    font-weight: var(--weight-semibold);
+    white-space: nowrap;
+  }
+
+  .schedule-table tbody tr:last-child th,
+  .schedule-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  .schedule-table__empty {
+    font-size: var(--text-base);
+    color: var(--color-text-muted);
+  }
+</style>

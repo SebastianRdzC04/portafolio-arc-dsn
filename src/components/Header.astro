@@ -1,5 +1,6 @@
 ---
-import { subjects, student } from '../data/subjects';
+import { student } from '../data/subjects';
+import { terms } from '../data/terms';
 
 const currentPath = Astro.url.pathname;
 ---
@@ -33,16 +34,16 @@ const currentPath = Astro.url.pathname;
           Inicio
         </a>
       </li>
-      {subjects.map((subject) => (
+      {terms.map((term) => (
         <li>
           <a
-            href={`/${subject.slug}/`}
+            href={`/${term.slug}/`}
             class:list={[
               'header__link',
-              { 'header__link--active': currentPath.startsWith(`/${subject.slug}`) },
+              { 'header__link--active': currentPath.startsWith(`/${term.slug}`) },
             ]}
           >
-            {subject.shortName}
+            {term.shortName}
           </a>
         </li>
       ))}

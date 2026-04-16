@@ -1,17 +1,18 @@
 ---
-import Layout from '../../layouts/Layout.astro';
-import Breadcrumbs from '../../components/Breadcrumbs.astro';
-import UnitSection from '../../components/UnitSection.astro';
-import { subjects } from '../../data/subjects';
+import Layout from '../../../layouts/Layout.astro';
+import Breadcrumbs from '../../../components/Breadcrumbs.astro';
+import UnitSection from '../../../components/UnitSection.astro';
+import { subjects } from '../../../data/subjects';
+import { getTermBySlug } from '../../../data/terms';
 import { getCollection } from 'astro:content';
-import { parseWorkId, groupBy } from '../../lib/utils';
+import { parseWorkId, groupBy, isWorkEntryId } from '../../../lib/utils';
 import type { GetStaticPaths, InferGetStaticPropsType } from 'astro';
 
 export const prerender = true;
 
 export const getStaticPaths = (async () => {
   return subjects.map((subject) => ({
-    params: { subject: subject.slug },
+    params: { term: subject.termSlug, subject: subject.slug },
     props: { subject },
   }));
 }) satisfies GetStaticPaths;
@@ -19,14 +20,22 @@ export const getStaticPaths = (async () => {
 type Props = InferGetStaticPropsType<typeof getStaticPaths>;
 
 const { subject } = Astro.props as Props;
+const term = getTermBySlug(subject.termSlug);
+const termName = term?.name ?? subject.termSlug;
 
-const allWorks = await getCollection('trabajos', ({ data }) => !data.draft);
-const subjectWorks = allWorks.filter(
-  (work) => parseWorkId(work.id).subject === subject.slug,
+const allEntries = await getCollection('trabajos', ({ data }) => !data.draft);
+const allWorks = allEntries.filter((entry) => isWorkEntryId(entry.id));
+const subjectWorks = allWorks.filter((work) => {
+  const parsed = parseWorkId(work.id);
+  return parsed.term === subject.termSlug && parsed.subject === subject.slug;
+});
+
+const visibleSubjectWorks = subjectWorks.filter(
+  (work) => parseWorkId(work.id).file === 'index',
 );
 
 /** Group works by unit slug */
-const unitGroups = groupBy(subjectWorks, (work) => parseWorkId(work.id).unit);
+const unitGroups = groupBy(visibleSubjectWorks, (work) => parseWorkId(work.id).unit);
 
 /** Sort unit keys naturally (unidad-1, unidad-2, ...) */
 const sortedUnits = [...unitGroups.entries()].sort(([a], [b]) =>
@@ -35,13 +44,14 @@ const sortedUnits = [...unitGroups.entries()].sort(([a], [b]) =>
 ---
 
 <Layout
-  title={`${subject.name} — Portafolio Academico`}
+  title={`${subject.name} — ${termName}`}
   description={subject.description}
 >
   <div class="subject-page container">
     <Breadcrumbs
       items={[
         { label: 'Inicio', href: '/' },
+        { label: termName, href: `/${subject.termSlug}/` },
         { label: subject.name },
       ]}
     />
@@ -51,8 +61,11 @@ const sortedUnits = [...unitGroups.entries()].sort(([a], [b]) =>
       <h1 class="subject-page__title">{subject.name}</h1>
       <p class="subject-page__description">{subject.description}</p>
       <div class="subject-page__meta">
-        <span>Semestre: {subject.semester}</span>
-        <span>{subjectWorks.length} {subjectWorks.length === 1 ? 'trabajo' : 'trabajos'}</span>
+        <span>Periodo: {subject.semester}</span>
+        <span>
+          {visibleSubjectWorks.length}{' '}
+          {visibleSubjectWorks.length === 1 ? 'trabajo' : 'trabajos'}
+        </span>
       </div>
     </header>
 
@@ -64,6 +77,7 @@ const sortedUnits = [...unitGroups.entries()].sort(([a], [b]) =>
       <div class="subject-page__units">
         {sortedUnits.map(([unitSlug, works]) => (
           <UnitSection
+            termSlug={subject.termSlug}
             unitSlug={unitSlug}
             works={works}
             subjectSlug={subject.slug}

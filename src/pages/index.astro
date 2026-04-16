@@ -1,17 +1,40 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import SubjectCard from '../components/SubjectCard.astro';
-import { subjects, student } from '../data/subjects';
+import TermCard from '../components/TermCard.astro';
+import { student, getSubjectsByTerm } from '../data/subjects';
+import { terms } from '../data/terms';
 import { getCollection } from 'astro:content';
-import { parseWorkId } from '../lib/utils';
+import {
+  parseContentId,
+  parseWorkId,
+  isScheduleEntryId,
+  isWorkEntryId,
+} from '../lib/utils';
 
-const allWorks = await getCollection('trabajos', ({ data }) => !data.draft);
+const allEntries = await getCollection('trabajos', ({ data }) => !data.draft);
+const allWorks = allEntries.filter((entry) => isWorkEntryId(entry.id));
 
-/** Count published works per subject slug */
-const workCounts = new Map<string, number>();
+/** Count published works per term slug */
+const workCountsByTerm = new Map<string, number>();
 for (const work of allWorks) {
-  const { subject } = parseWorkId(work.id);
-  workCounts.set(subject, (workCounts.get(subject) ?? 0) + 1);
+  const { term, file } = parseWorkId(work.id);
+
+  if (file !== 'index') {
+    continue;
+  }
+
+  workCountsByTerm.set(term, (workCountsByTerm.get(term) ?? 0) + 1);
+}
+
+/** Register terms that have a schedule file */
+const termsWithSchedule = new Set<string>();
+for (const entry of allEntries) {
+  if (isScheduleEntryId(entry.id)) {
+    const { term } = parseContentId(entry.id);
+    if (term) {
+      termsWithSchedule.add(term);
+    }
+  }
 }
 ---
 
@@ -22,19 +45,21 @@ for (const work of allWorks) {
       <h1 class="hero__title">{student.name}</h1>
       <p class="hero__subtitle">{student.career}</p>
       <p class="hero__description">
-        Repositorio de trabajos, investigaciones y proyectos organizados por materia y unidad.
+        Repositorio de trabajos, investigaciones y proyectos organizados por cuatrimestre, materia y unidad.
       </p>
     </div>
   </section>
 
-  <section class="subjects" aria-labelledby="subjects-heading">
-    <div class="subjects__inner container">
-      <h2 id="subjects-heading" class="subjects__heading">Materias</h2>
-      <div class="subjects__grid">
-        {subjects.map((subject) => (
-          <SubjectCard
-            subject={subject}
-            workCount={workCounts.get(subject.slug) ?? 0}
+  <section class="terms" aria-labelledby="terms-heading">
+    <div class="terms__inner container">
+      <h2 id="terms-heading" class="terms__heading">Cuatrimestres</h2>
+      <div class="terms__grid">
+        {terms.map((term) => (
+          <TermCard
+            term={term}
+            subjectCount={getSubjectsByTerm(term.slug).length}
+            workCount={workCountsByTerm.get(term.slug) ?? 0}
+            hasSchedule={termsWithSchedule.has(term.slug)}
           />
         ))}
       </div>
@@ -106,33 +131,33 @@ for (const work of allWorks) {
     }
   }
 
-  /* ---- Subjects ---- */
-  .subjects {
+  /* ---- Terms ---- */
+  .terms {
     padding-bottom: var(--space-16);
   }
 
-  .subjects__inner {
+  .terms__inner {
     display: flex;
     flex-direction: column;
     gap: var(--space-6);
   }
 
-  .subjects__heading {
+  .terms__heading {
     font-family: var(--font-heading);
     font-size: var(--text-2xl);
     font-weight: var(--weight-bold);
     color: var(--color-text);
   }
 
-  .subjects__grid {
+  .terms__grid {
     display: grid;
     grid-template-columns: 1fr;
     gap: var(--space-5);
   }
 
   @media (min-width: 640px) {
-    .subjects__grid {
-      grid-template-columns: repeat(2, 1fr);
+    .terms__grid {
+      grid-template-columns: minmax(0, 1fr);
     }
   }
 </style>

@@ -7,9 +7,10 @@ import { z } from "astro/zod";
  *
  * The glob loader scans every .md file under src/content/.
  * The generated `id` preserves the full relative path, e.g.:
- *   "experiencia-de-usuario/unidad-1/investigacion-ux/index"
+ *   "cuatrimestre-vii/experiencia-de-usuario/unidad-1/investigacion-ux/index"
+ *   "cuatrimestre-vii/horario"
  *
- * This lets us parse subject, unit, and work slug from the id itself.
+ * This lets us parse term, subject, unit, and work slug from the id itself.
  */
 const trabajos = defineCollection({
   loader: glob({

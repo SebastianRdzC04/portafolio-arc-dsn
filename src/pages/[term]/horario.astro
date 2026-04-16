@@ -1,0 +1,227 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import ScheduleTable from '../../components/ScheduleTable.astro';
+import { getTermBySlug } from '../../data/terms';
+import { getCollection } from 'astro:content';
+import { parseContentId, isScheduleEntryId } from '../../lib/utils';
+import type { GetStaticPaths, InferGetStaticPropsType } from 'astro';
+
+interface ScheduleCell {
+  value: string;
+  isHeader: boolean;
+}
+
+interface ScheduleRow {
+  cells: ScheduleCell[];
+}
+
+function isSeparatorRow(cells: string[]): boolean {
+  return cells.every((cell) => /^:?-{3,}:?$/.test(cell.replace(/\s+/g, '')));
+}
+
+function parseMarkdownTable(markdown: string): ScheduleRow[] {
+  const lines = markdown.split(/\r?\n/);
+  const tableLines: string[] = [];
+  let collecting = false;
+
+  for (const line of lines) {
+    const trimmedLine = line.trim();
+    const isTableLine = trimmedLine.startsWith('|') && trimmedLine.endsWith('|');
+
+    if (isTableLine) {
+      collecting = true;
+      tableLines.push(trimmedLine);
+      continue;
+    }
+
+    if (collecting) {
+      break;
+    }
+  }
+
+  if (tableLines.length === 0) {
+    return [];
+  }
+
+  const rows: ScheduleRow[] = [];
+  let isHeaderRow = true;
+
+  for (const line of tableLines) {
+    const cells = line
+      .split('|')
+      .slice(1, -1)
+      .map((cell) => cell.trim());
+
+    if (cells.length === 0 || isSeparatorRow(cells)) {
+      continue;
+    }
+
+    rows.push({
+      cells: cells.map((value, index) => ({
+        value,
+        isHeader: !isHeaderRow && index === 0,
+      })),
+    });
+
+    if (isHeaderRow) {
+      isHeaderRow = false;
+    }
+  }
+
+  return rows;
+}
+
+export const prerender = true;
+
+export const getStaticPaths = (async () => {
+  const allEntries = await getCollection('trabajos', ({ data }) => !data.draft);
+  const scheduleEntries = allEntries.filter((entry) => isScheduleEntryId(entry.id));
+
+  return scheduleEntries.map((entry) => {
+    const { term } = parseContentId(entry.id);
+
+    return {
+      params: { term },
+      props: { entry },
+    };
+  });
+}) satisfies GetStaticPaths;
+
+type Props = InferGetStaticPropsType<typeof getStaticPaths>;
+
+const { entry } = Astro.props as Props;
+const parsed = parseContentId(entry.id);
+const term = getTermBySlug(parsed.term);
+const termName = term?.name ?? parsed.term;
+const rows = parseMarkdownTable(entry.body ?? '');
+const totalBlocks = rows.length > 0 ? rows.length - 1 : 0;
+const weekdays = rows[0]?.cells.length ? rows[0].cells.length - 1 : 0;
+---
+
+<Layout
+  title={`Horario ${termName} — Portafolio Academico`}
+  description={entry.data.description}
+>
+  <div class="schedule-page container">
+    <Breadcrumbs
+      items={[
+        { label: 'Inicio', href: '/' },
+        { label: termName, href: `/${parsed.term}/` },
+        { label: 'Horario' },
+      ]}
+    />
+
+    <header class="schedule-page__header">
+      <div class="schedule-page__badge-wrap">
+        <span class="schedule-page__badge">Horario</span>
+      </div>
+      <h1 class="schedule-page__title">{entry.data.title}</h1>
+      <p class="schedule-page__description">{entry.data.description}</p>
+      <div class="schedule-page__stats" role="list" aria-label="Resumen del horario">
+        <span class="schedule-page__stat" role="listitem">{weekdays} dias lectivos</span>
+        <span class="schedule-page__stat" role="listitem">{totalBlocks} bloques de clase</span>
+        <span class="schedule-page__stat" role="listitem">{termName}</span>
+      </div>
+    </header>
+
+    <section class="schedule-page__table-section" aria-labelledby="horario-heading">
+      <h2 id="horario-heading" class="schedule-page__table-title">Distribucion semanal</h2>
+      <ScheduleTable rows={rows} />
+    </section>
+  </div>
+</Layout>
+
+<style>
+  .schedule-page {
+    max-width: var(--max-width);
+    padding-top: var(--space-8);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+  }
+
+  .schedule-page__header {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    padding: var(--space-6);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-2xl);
+    background:
+      radial-gradient(circle at top right, var(--color-accent-bg), transparent 46%),
+      linear-gradient(140deg, var(--color-bg-card), var(--color-bg-alt));
+  }
+
+  .schedule-page__badge-wrap {
+    display: flex;
+  }
+
+  .schedule-page__badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-full);
+    background-color: var(--color-accent);
+    color: var(--color-text-inverse);
+    font-family: var(--font-heading);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-bold);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .schedule-page__title {
+    font-family: var(--font-heading);
+    font-size: var(--text-4xl);
+    font-weight: var(--weight-bold);
+    line-height: var(--leading-tight);
+    color: var(--color-text);
+  }
+
+  .schedule-page__description {
+    max-width: var(--max-width-prose);
+    font-size: var(--text-lg);
+    color: var(--color-text-muted);
+    line-height: var(--leading-relaxed);
+  }
+
+  .schedule-page__stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .schedule-page__stat {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-full);
+    background-color: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-medium);
+    color: var(--color-text-secondary);
+  }
+
+  .schedule-page__table-section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  .schedule-page__table-title {
+    font-family: var(--font-heading);
+    font-size: var(--text-2xl);
+    font-weight: var(--weight-bold);
+    color: var(--color-text);
+  }
+
+  @media (max-width: 639px) {
+    .schedule-page__title {
+      font-size: var(--text-3xl);
+    }
+  }
+</style>

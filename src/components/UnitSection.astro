@@ -4,12 +4,13 @@ import { slugToLabel, parseWorkId, sortByOrder } from '../lib/utils';
 import type { CollectionEntry } from 'astro:content';
 
 interface Props {
+  termSlug: string;
   unitSlug: string;
   works: CollectionEntry<'trabajos'>[];
   subjectSlug: string;
 }
 
-const { unitSlug, works, subjectSlug } = Astro.props;
+const { termSlug, unitSlug, works, subjectSlug } = Astro.props;
 const sortedWorks = sortByOrder(works);
 const unitLabel = slugToLabel(unitSlug);
 // Solo mostrar el index.md y que no tenga isSection: true
@@ -24,7 +25,7 @@ const filteredWorks = sortedWorks.filter((work) => {
   <div class="unit-section__grid">
     {filteredWorks.map((work) => {
       const parsed = parseWorkId(work.id);
-      const href = `/${subjectSlug}/${parsed.unit}/${parsed.work}/`;
+      const href = `/${termSlug}/${subjectSlug}/${parsed.unit}/${parsed.work}/`;
       return (
         <WorkCard
           title={work.data.title}

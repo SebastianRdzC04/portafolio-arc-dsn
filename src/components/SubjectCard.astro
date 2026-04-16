@@ -9,7 +9,11 @@ interface Props {
 const { subject, workCount } = Astro.props;
 ---
 
-<a href={`/${subject.slug}/`} class="card" style={`--card-accent: ${subject.color}`}>
+<a
+  href={`/${subject.termSlug}/${subject.slug}/`}
+  class="card"
+  style={`--card-accent: ${subject.color}`}
+>
   <div class="card__badge" aria-hidden="true">
     {subject.shortName}
   </div>
