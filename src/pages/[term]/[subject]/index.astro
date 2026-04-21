@@ -1,6 +1,7 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
 import Breadcrumbs from '../../../components/Breadcrumbs.astro';
+import PdfExportButton from '../../../components/PdfExportButton.astro';
 import UnitSection from '../../../components/UnitSection.astro';
 import { subjects } from '../../../data/subjects';
 import { getTermBySlug } from '../../../data/terms';
@@ -31,8 +32,11 @@ const subjectWorks = allWorks.filter((work) => {
 });
 
 const visibleSubjectWorks = subjectWorks.filter(
-  (work) => parseWorkId(work.id).file === 'index',
+  (work) => parseWorkId(work.id).file === 'index' && !work.data.isSection,
 );
+
+const subjectPdfPath = `/${subject.termSlug}/${subject.slug}/pdf/`;
+const subjectPdfDownloadUrl = `/api/pdf?url=${encodeURIComponent(subjectPdfPath)}`;
 
 /** Group works by unit slug */
 const unitGroups = groupBy(visibleSubjectWorks, (work) => parseWorkId(work.id).unit);
@@ -67,6 +71,17 @@ const sortedUnits = [...unitGroups.entries()].sort(([a], [b]) =>
           {visibleSubjectWorks.length === 1 ? 'trabajo' : 'trabajos'}
         </span>
       </div>
+      {visibleSubjectWorks.length > 0 && (
+        <div class="subject-page__actions">
+          <PdfExportButton
+            href={subjectPdfDownloadUrl}
+            title={subject.name}
+            label="Descargar PDF completo"
+            ariaLabel={`Descargar todos los trabajos de "${subject.name}" como PDF`}
+            showTextOnMobile={true}
+          />
+        </div>
+      )}
     </header>
 
     {sortedUnits.length === 0 ? (
@@ -145,6 +160,11 @@ const sortedUnits = [...unitGroups.entries()].sort(([a], [b]) =>
     gap: var(--space-4);
     font-size: var(--text-sm);
     color: var(--color-text-muted);
+  }
+
+  .subject-page__actions {
+    display: flex;
+    align-items: center;
   }
 
   /* ---- Units list ---- */

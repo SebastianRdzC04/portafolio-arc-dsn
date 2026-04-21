@@ -2,16 +2,25 @@
 interface Props {
   href: string;
   title: string;
+  label?: string;
+  ariaLabel?: string;
+  showTextOnMobile?: boolean;
 }
 
-const { href, title } = Astro.props;
+const {
+  href,
+  title,
+  label = 'Descargar PDF',
+  ariaLabel = `Descargar "${title}" como PDF`,
+  showTextOnMobile = false,
+} = Astro.props;
 ---
 
 <div class="pdf-export">
   <a
     class="pdf-export__button"
     href={href}
-    aria-label={`Descargar "${title}" como PDF`}
+    aria-label={ariaLabel}
   >
     <svg
       class="pdf-export__icon"
@@ -29,7 +38,9 @@ const { href, title } = Astro.props;
       <line x1="12" y1="13" x2="12" y2="17"></line>
       <line x1="9" y1="15" x2="15" y2="15"></line>
     </svg>
-    <span class="pdf-export__text">Descargar PDF</span>
+    <span class:list={['pdf-export__text', { 'pdf-export__text--mobile': showTextOnMobile }]}>
+      {label}
+    </span>
   </a>
 </div>
 
@@ -74,6 +85,10 @@ const { href, title } = Astro.props;
 
   .pdf-export__text {
     display: none;
+  }
+
+  .pdf-export__text--mobile {
+    display: inline;
   }
 
   @media (min-width: 768px) {
