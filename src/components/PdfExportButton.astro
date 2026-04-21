@@ -5,6 +5,7 @@ interface Props {
   label?: string;
   ariaLabel?: string;
   showTextOnMobile?: boolean;
+  loadingLabel?: string;
 }
 
 const {
@@ -13,6 +14,7 @@ const {
   label = 'Descargar PDF',
   ariaLabel = `Descargar "${title}" como PDF`,
   showTextOnMobile = false,
+  loadingLabel = 'Generando PDF...',
 } = Astro.props;
 ---
 
@@ -21,6 +23,8 @@ const {
     class="pdf-export__button"
     href={href}
     aria-label={ariaLabel}
+    data-pdf-export
+    data-loading-label={loadingLabel}
   >
     <svg
       class="pdf-export__icon"
@@ -38,11 +42,110 @@ const {
       <line x1="12" y1="13" x2="12" y2="17"></line>
       <line x1="9" y1="15" x2="15" y2="15"></line>
     </svg>
+    <svg
+      class="pdf-export__spinner"
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="12" r="8" opacity="0.25"></circle>
+      <path d="M20 12a8 8 0 0 0-8-8"></path>
+    </svg>
     <span class:list={['pdf-export__text', { 'pdf-export__text--mobile': showTextOnMobile }]}>
       {label}
     </span>
   </a>
 </div>
+
+<script>
+  const pdfExportButtons = document.querySelectorAll('.pdf-export__button[data-pdf-export]');
+
+  function getFilenameFromDisposition(disposition: string | null): string | null {
+    if (!disposition) {
+      return null;
+    }
+
+    const utfMatch = disposition.match(/filename\*=UTF-8''([^;]+)/i);
+    if (utfMatch?.[1]) {
+      try {
+        return decodeURIComponent(utfMatch[1]);
+      } catch {
+        return utfMatch[1];
+      }
+    }
+
+    const asciiMatch = disposition.match(/filename="?([^";]+)"?/i);
+    return asciiMatch?.[1] ?? null;
+  }
+
+  async function downloadPdf(button: HTMLAnchorElement): Promise<void> {
+    const href = button.getAttribute('href');
+    if (!href) {
+      return;
+    }
+
+    const response = await fetch(href, { method: 'GET', credentials: 'same-origin' });
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+
+    const blob = await response.blob();
+    const objectUrl = URL.createObjectURL(blob);
+    const disposition = response.headers.get('content-disposition');
+    const suggestedFilename = getFilenameFromDisposition(disposition) ?? 'documento.pdf';
+    const trigger = document.createElement('a');
+    trigger.href = objectUrl;
+    trigger.download = suggestedFilename;
+    document.body.appendChild(trigger);
+    trigger.click();
+    trigger.remove();
+    window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+  }
+
+  pdfExportButtons.forEach((button) => {
+    const anchor = button as HTMLAnchorElement;
+    const label = anchor.querySelector('.pdf-export__text');
+    const originalLabel = label?.textContent ?? '';
+    const loadingText = anchor.dataset.loadingLabel ?? 'Generando PDF...';
+    let isLoading = false;
+
+    anchor.addEventListener('click', async (event) => {
+      if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+        return;
+      }
+
+      event.preventDefault();
+      if (isLoading) {
+        return;
+      }
+
+      isLoading = true;
+      anchor.classList.add('pdf-export__button--loading');
+      anchor.setAttribute('aria-busy', 'true');
+      anchor.setAttribute('aria-disabled', 'true');
+      if (label) {
+        label.textContent = loadingText;
+      }
+
+      try {
+        await downloadPdf(anchor);
+      } catch {
+        window.location.assign(anchor.href);
+      } finally {
+        isLoading = false;
+        anchor.classList.remove('pdf-export__button--loading');
+        anchor.removeAttribute('aria-busy');
+        anchor.removeAttribute('aria-disabled');
+        if (label) {
+          label.textContent = originalLabel;
+        }
+      }
+    });
+  });
+</script>
 
 <style>
   .pdf-export {
@@ -67,6 +170,12 @@ const {
     white-space: nowrap;
   }
 
+  .pdf-export__button--loading {
+    pointer-events: none;
+    cursor: progress;
+    opacity: 0.95;
+  }
+
   .pdf-export__button:hover:not(:disabled) {
     background-color: var(--color-accent-dark);
     transform: translateY(-1px);
@@ -81,6 +190,22 @@ const {
     width: 1em;
     height: 1em;
     flex-shrink: 0;
+  }
+
+  .pdf-export__spinner {
+    display: none;
+    width: 1em;
+    height: 1em;
+    flex-shrink: 0;
+    animation: pdf-spin 0.8s linear infinite;
+  }
+
+  .pdf-export__button--loading .pdf-export__icon {
+    display: none;
+  }
+
+  .pdf-export__button--loading .pdf-export__spinner {
+    display: block;
   }
 
   .pdf-export__text {
@@ -122,6 +247,20 @@ const {
     .pdf-export__icon {
       width: 1.2em;
       height: 1.2em;
+    }
+
+    .pdf-export__spinner {
+      width: 1.2em;
+      height: 1.2em;
+    }
+  }
+
+  @keyframes pdf-spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
     }
   }
 </style>
