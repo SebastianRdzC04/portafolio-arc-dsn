@@ -45,6 +45,16 @@ export const subjects: Subject[] = [
   },
   {
     termSlug: "cuatrimestre-vii",
+    slug: "administracion-del-tiempo",
+    name: "Administracion del Tiempo",
+    shortName: "Adm. Tiempo",
+    description:
+      "Planeacion personal, priorizacion de tareas, reuniones efectivas y tecnicas para mejorar la productividad.",
+    semester: "2026-1",
+    color: "#0891b2",
+  },
+  {
+    termSlug: "cuatrimestre-vii",
     slug: "seguridad-informatica",
     name: "Seguridad Informática",
     shortName: "Seg. Inf.",
