@@ -1,0 +1,8 @@
+{
+  "name": "Seguridad Informática",
+  "shortName": "Seg. Inf.",
+  "description": "Criptografía, seguridad en redes, gestión de vulnerabilidades y políticas de seguridad.",
+  "cuatrimestre": "2026-1",
+  "color": "#dc2626",
+  "order": 4
+}

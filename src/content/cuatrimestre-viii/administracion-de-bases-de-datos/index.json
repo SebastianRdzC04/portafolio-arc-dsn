@@ -1,0 +1,8 @@
+{
+  "name": "Administracion de Bases de Datos",
+  "shortName": "ABD",
+  "description": "Administracion, seguridad, respaldo y optimizacion de bases de datos relacionales.",
+  "cuatrimestre": "2026-2",
+  "color": "#0ea5e9",
+  "order": 1
+}

@@ -3,22 +3,27 @@ import Layout from '../../../layouts/Layout.astro';
 import Breadcrumbs from '../../../components/Breadcrumbs.astro';
 import PdfExportButton from '../../../components/PdfExportButton.astro';
 import UnitSection from '../../../components/UnitSection.astro';
-import { subjects } from '../../../data/subjects';
+import { getSubjects } from '../../../data/subjects';
 import { getTermBySlug } from '../../../data/terms';
 import { getCollection } from 'astro:content';
 import { parseWorkId, groupBy, isWorkEntryId } from '../../../lib/utils';
-import type { GetStaticPaths, InferGetStaticPropsType } from 'astro';
+import type { GetStaticPaths } from 'astro';
+import type { Subject } from '../../../data/subjects';
 
 export const prerender = true;
 
 export const getStaticPaths = (async () => {
+  const subjects = await getSubjects();
+
   return subjects.map((subject) => ({
     params: { term: subject.termSlug, subject: subject.slug },
     props: { subject },
   }));
 }) satisfies GetStaticPaths;
 
-type Props = InferGetStaticPropsType<typeof getStaticPaths>;
+interface Props {
+  subject: Subject;
+}
 
 const { subject } = Astro.props as Props;
 const term = getTermBySlug(subject.termSlug);
@@ -65,7 +70,7 @@ const sortedUnits = [...unitGroups.entries()].sort(([a], [b]) =>
       <h1 class="subject-page__title">{subject.name}</h1>
       <p class="subject-page__description">{subject.description}</p>
       <div class="subject-page__meta">
-        <span>Periodo: {subject.semester}</span>
+        <span>Cuatrimestre: {subject.cuatrimestre}</span>
         <span>
           {visibleSubjectWorks.length}{' '}
           {visibleSubjectWorks.length === 1 ? 'trabajo' : 'trabajos'}

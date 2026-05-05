@@ -1,0 +1,8 @@
+{
+  "name": "Seguridad en el Desarrollo de Aplicaciones",
+  "shortName": "Seg. App",
+  "description": "Practicas seguras, validacion de entradas, autenticacion y proteccion de aplicaciones.",
+  "cuatrimestre": "2026-2",
+  "color": "#ef4444",
+  "order": 6
+}

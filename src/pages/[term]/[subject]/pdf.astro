@@ -1,7 +1,7 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
 import Breadcrumbs from '../../../components/Breadcrumbs.astro';
-import { subjects } from '../../../data/subjects';
+import { getSubjects } from '../../../data/subjects';
 import { getTermBySlug } from '../../../data/terms';
 import { getCollection, render } from 'astro:content';
 import {
@@ -13,7 +13,8 @@ import {
   sortByOrder,
 } from '../../../lib/utils';
 import type { CollectionEntry } from 'astro:content';
-import type { GetStaticPaths, InferGetStaticPropsType } from 'astro';
+import type { GetStaticPaths } from 'astro';
+import type { Subject } from '../../../data/subjects';
 
 export const prerender = true;
 
@@ -30,13 +31,17 @@ interface SubjectPdfWork {
 }
 
 export const getStaticPaths = (async () => {
+  const subjects = await getSubjects();
+
   return subjects.map((subject) => ({
     params: { term: subject.termSlug, subject: subject.slug },
     props: { subject },
   }));
 }) satisfies GetStaticPaths;
 
-type Props = InferGetStaticPropsType<typeof getStaticPaths>;
+interface Props {
+  subject: Subject;
+}
 
 const { subject } = Astro.props as Props;
 const term = getTermBySlug(subject.termSlug);
@@ -107,7 +112,7 @@ function getWorkAnchor(work: SubjectPdfWork): string {
       </p>
       <div class="subject-pdf__meta">
         <span>{termName}</span>
-        <span>Periodo: {subject.semester}</span>
+        <span>Cuatrimestre: {subject.cuatrimestre}</span>
         <span>
           {renderedWorks.length} {renderedWorks.length === 1 ? 'trabajo' : 'trabajos'}
         </span>

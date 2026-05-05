@@ -1,9 +1,12 @@
 /**
  * Subject registry.
  *
- * Each subject's `slug` MUST match the folder name under src/content/.
- * To add a new subject: add an entry here and create the matching folder.
+ * Each subject entry lives in `src/content/<term>/<subject>/index.json`.
+ * To add a new subject: create the matching folder and metadata file.
  */
+
+import { getCollection } from "astro:content";
+import { parseSubjectId } from "../lib/utils";
 
 export interface Subject {
   /** Must match term folder name (e.g. "cuatrimestre-vii") */
@@ -16,54 +19,49 @@ export interface Subject {
   shortName: string;
   /** Brief description shown on the card */
   description: string;
-  /** Academic semester */
-  semester: string;
+  /** Academic cuatrimestre */
+  cuatrimestre: string;
   /** Accent color for visual differentiation (CSS custom property value) */
   color: string;
+  /** Optional display order within the term */
+  order?: number;
 }
 
-export const subjects: Subject[] = [
-  {
-    termSlug: "cuatrimestre-vii",
-    slug: "experiencia-de-usuario",
-    name: "Experiencia de Usuario",
-    shortName: "UX",
-    description:
-      "Diseño centrado en el usuario, prototipos, pruebas de usabilidad y arquitectura de información.",
-    semester: "2026-1",
-    color: "#2563eb",
-  },
-  {
-    termSlug: "cuatrimestre-vii",
-    slug: "arquitecturas-de-software",
-    name: "Arquitecturas de Software",
-    shortName: "Arq. SW",
-    description:
-      "Patrones arquitectónicos, microservicios, diseño de sistemas y calidad de software.",
-    semester: "2026-1",
-    color: "#7c3aed",
-  },
-  {
-    termSlug: "cuatrimestre-vii",
-    slug: "administracion-del-tiempo",
-    name: "Administracion del Tiempo",
-    shortName: "Adm. Tiempo",
-    description:
-      "Planeacion personal, priorizacion de tareas, reuniones efectivas y tecnicas para mejorar la productividad.",
-    semester: "2026-1",
-    color: "#0891b2",
-  },
-  {
-    termSlug: "cuatrimestre-vii",
-    slug: "seguridad-informatica",
-    name: "Seguridad Informática",
-    shortName: "Seg. Inf.",
-    description:
-      "Criptografía, seguridad en redes, gestión de vulnerabilidades y políticas de seguridad.",
-    semester: "2026-1",
-    color: "#dc2626",
-  },
-];
+let subjectsCache: Promise<Subject[]> | undefined;
+
+async function loadSubjects(): Promise<Subject[]> {
+  const entries = await getCollection("materias");
+
+  return entries
+    .map((entry) => {
+      const parsed = parseSubjectId(entry.id);
+
+      return {
+        termSlug: parsed.term,
+        slug: parsed.subject,
+        ...entry.data,
+      };
+    })
+    .sort((a, b) => {
+      if (a.termSlug !== b.termSlug) {
+        return a.termSlug.localeCompare(b.termSlug, undefined, { numeric: true });
+      }
+
+      const orderA = a.order ?? Number.POSITIVE_INFINITY;
+      const orderB = b.order ?? Number.POSITIVE_INFINITY;
+
+      if (orderA !== orderB) {
+        return orderA - orderB;
+      }
+
+      return a.slug.localeCompare(b.slug, undefined, { numeric: true });
+    });
+}
+
+export async function getSubjects(): Promise<Subject[]> {
+  subjectsCache ??= loadSubjects();
+  return subjectsCache;
+}
 
 /** Student info — shown in header / footer */
 export const student = {
@@ -73,15 +71,18 @@ export const student = {
 } as const;
 
 /** List all subjects for a given term */
-export function getSubjectsByTerm(termSlug: string): Subject[] {
+export async function getSubjectsByTerm(termSlug: string): Promise<Subject[]> {
+  const subjects = await getSubjects();
   return subjects.filter((subject) => subject.termSlug === termSlug);
 }
 
 /** Look up a subject by term slug and subject slug */
-export function getSubjectByTermAndSlug(
+export async function getSubjectByTermAndSlug(
   termSlug: string,
   subjectSlug: string,
-): Subject | undefined {
+): Promise<Subject | undefined> {
+  const subjects = await getSubjects();
+
   return subjects.find(
     (subject) => subject.termSlug === termSlug && subject.slug === subjectSlug,
   );

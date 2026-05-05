@@ -31,7 +31,7 @@ const {
 } = Astro.props;
 const term = getTermBySlug(termSlug);
 const termName = term?.name ?? slugToLabel(termSlug);
-const subject = getSubjectByTermAndSlug(termSlug, subjectSlug);
+const subject = await getSubjectByTermAndSlug(termSlug, subjectSlug);
 const subjectName = subject?.name ?? slugToLabel(subjectSlug);
 const unitLabel = slugToLabel(unitSlug);
 ---

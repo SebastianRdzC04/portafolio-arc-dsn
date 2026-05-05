@@ -11,7 +11,8 @@ import {
   isScheduleEntryId,
   isWorkEntryId,
 } from '../../lib/utils';
-import type { GetStaticPaths, InferGetStaticPropsType } from 'astro';
+import type { GetStaticPaths } from 'astro';
+import type { Term } from '../../data/terms';
 
 export const prerender = true;
 
@@ -22,10 +23,12 @@ export const getStaticPaths = (async () => {
   }));
 }) satisfies GetStaticPaths;
 
-type Props = InferGetStaticPropsType<typeof getStaticPaths>;
+interface Props {
+  term: Term;
+}
 
 const { term } = Astro.props as Props;
-const termSubjects = getSubjectsByTerm(term.slug);
+const termSubjects = await getSubjectsByTerm(term.slug);
 
 const allEntries = await getCollection('trabajos', ({ data }) => !data.draft);
 const termWorks = allEntries.filter((entry) => {

@@ -5,7 +5,8 @@ import ScheduleTable from '../../components/ScheduleTable.astro';
 import { getTermBySlug } from '../../data/terms';
 import { getCollection } from 'astro:content';
 import { parseContentId, isScheduleEntryId } from '../../lib/utils';
-import type { GetStaticPaths, InferGetStaticPropsType } from 'astro';
+import type { CollectionEntry } from 'astro:content';
+import type { GetStaticPaths } from 'astro';
 
 interface ScheduleCell {
   value: string;
@@ -88,7 +89,9 @@ export const getStaticPaths = (async () => {
   });
 }) satisfies GetStaticPaths;
 
-type Props = InferGetStaticPropsType<typeof getStaticPaths>;
+interface Props {
+  entry: CollectionEntry<'trabajos'>;
+}
 
 const { entry } = Astro.props as Props;
 const parsed = parseContentId(entry.id);

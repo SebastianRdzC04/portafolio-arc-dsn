@@ -20,7 +20,7 @@ const { subject, workCount } = Astro.props;
   <h2 class="card__title">{subject.name}</h2>
   <p class="card__description">{subject.description}</p>
   <div class="card__meta">
-    <span class="card__semester">{subject.semester}</span>
+    <span class="card__cuatrimestre">{subject.cuatrimestre}</span>
     <span class="card__count">
       {workCount} {workCount === 1 ? 'trabajo' : 'trabajos'}
     </span>
@@ -95,6 +95,11 @@ const { subject, workCount } = Astro.props;
   }
 
   .card__count {
+    font-weight: var(--weight-medium);
+    color: var(--color-text-secondary);
+  }
+
+  .card__cuatrimestre {
     font-weight: var(--weight-medium);
     color: var(--color-text-secondary);
   }

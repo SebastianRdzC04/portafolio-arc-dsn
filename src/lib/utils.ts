@@ -27,6 +27,15 @@ export interface ParsedContentId {
 }
 
 /**
+ * Parsed shape for subject metadata entry ids.
+ */
+export interface ParsedSubjectId {
+  term: string;
+  subject: string;
+  file: string;
+}
+
+/**
  * Parse a content-collection entry id into its constituent parts.
  *
  * Supported formats:
@@ -57,6 +66,22 @@ export function parseContentId(id: string): ParsedContentId {
     work: parts[3] ?? "",
     file: parts[4] ?? "index",
     isSchedule: false,
+  };
+}
+
+/**
+ * Parse a subject metadata id.
+ *
+ * Supported format:
+ * - "cuatrimestre-vii/experiencia-de-usuario/index"
+ */
+export function parseSubjectId(id: string): ParsedSubjectId {
+  const parts = id.split("/");
+
+  return {
+    term: parts[0] ?? "",
+    subject: parts[1] ?? "",
+    file: parts[2] ?? "index",
   };
 }
 

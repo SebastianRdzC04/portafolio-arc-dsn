@@ -14,6 +14,11 @@ import {
 const allEntries = await getCollection('trabajos', ({ data }) => !data.draft);
 const allWorks = allEntries.filter((entry) => isWorkEntryId(entry.id));
 
+const subjectCounts = await Promise.all(
+  terms.map(async (term) => [term.slug, (await getSubjectsByTerm(term.slug)).length] as const),
+);
+const subjectCountByTerm = new Map(subjectCounts);
+
 /** Count published works per term slug */
 const workCountsByTerm = new Map<string, number>();
 for (const work of allWorks) {
@@ -57,7 +62,7 @@ for (const entry of allEntries) {
         {terms.map((term) => (
           <TermCard
             term={term}
-            subjectCount={getSubjectsByTerm(term.slug).length}
+            subjectCount={subjectCountByTerm.get(term.slug) ?? 0}
             workCount={workCountsByTerm.get(term.slug) ?? 0}
             hasSchedule={termsWithSchedule.has(term.slug)}
           />
