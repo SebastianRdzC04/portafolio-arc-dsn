@@ -29,7 +29,7 @@ La gestión de bases de datos ha experimentado una metamorfosis radical desde la
   - [Definición de Roles Personalizados](#definición-de-roles-personalizados)
 - [Seguridad en la Comunicación Interna: Autenticación por Keyfile](#seguridad-en-la-comunicación-interna-autenticación-por-keyfile)
   - [Teoría y Mecanismo del Keyfile](#teoría-y-mecanismo-del-keyfile)
-  - [Procedimiento de Implementación en Terminal](#procedimiento-de-implementación-en-terminal)
+  - [Configuración en Consola](#configuración-en-consola)
 - [Autenticación Avanzada mediante Certificados x.509](#autenticación-avanzada-mediante-certificados-x509)
   - [Configuración del Servidor para mTLS](#configuración-del-servidor-para-mtls)
   - [Gestión de Usuarios Externos ($external)](#gestión-de-usuarios-externos-)
@@ -175,36 +175,57 @@ En un Replica Set o un clúster fragmentado, los nodos deben comunicarse entre s
 
 Un Keyfile actúa como un secreto compartido. Cada nodo en el clúster utiliza el contenido del archivo para demostrar su identidad ante los demás miembros (MongoDB, s. f.-f). El archivo debe contener una cadena de caracteres en formato base64 y su longitud debe estar entre 6 y 1024 caracteres (MongoDB, s. f.-f).
 
-### **Procedimiento de Implementación en Terminal**
+### **Configuración en Consola**
 
-1. **Generación de la clave**: Utilizando OpenSSL para asegurar una entropía adecuada. Se recomienda generar 756 bytes de datos aleatorios (MangoHost, s. f.).  
+La configuración por consola se divide en tres pasos: crear el `keyFile`, ajustar `mongod.conf` en cada nodo e inicializar el `replica set` desde `mongosh` (MongoDB, s. f.-d; MongoDB, s. f.-f).
+
+1. **Crear el `keyFile`**. MongoDB recomienda usar un archivo de clave compartido y restringir sus permisos antes de habilitar la autenticación interna (MongoDB, s. f.-f).
+
 ```bash
-
-   Bash  
-   openssl rand \-base64 756 \> /var/lib/mongodb/mongodb-keyfile
+openssl rand -base64 756 > /var/lib/mongodb/mongodb-keyfile
+chown mongodb:mongodb /var/lib/mongodb/mongodb-keyfile
+chmod 400 /var/lib/mongodb/mongodb-keyfile
 ```
 
-2. **Configuración de permisos de sistema**: El archivo debe ser propiedad exclusiva del usuario que ejecuta el proceso mongod y no debe tener permisos de lectura para el grupo o para otros usuarios (permisos 400 o 600) (MongoDB, s. f.-f).  
-```bash
-   
-   Bash  
-   chown mongodb:mongodb /var/lib/mongodb/mongodb-keyfile  
-   chmod 400 /var/lib/mongodb/mongodb-keyfile
+2. **Ajustar `mongod.conf`**. El mismo archivo debe existir en cada nodo del clúster y la configuración debe habilitar el control de acceso, el `keyFile` y el nombre del `replica set` (MongoDB, s. f.-d; MongoDB, s. f.-f).
+
+```yaml
+net:
+  bindIp: 127.0.0.1,192.168.1.10
+  port: 27017
+
+security:
+  authorization: enabled
+  keyFile: /var/lib/mongodb/mongodb-keyfile
+
+replication:
+  replSetName: rs0
 ```
 
-3. **Distribución y Activación**: El archivo debe copiarse exactamente igual a todos los servidores del clúster. Posteriormente, se modifica el archivo mongod.conf para apuntar a la clave y activar el modo de replicación (MongoDB, s. f.-f).  
-```bash
+3. **Inicializar el clúster**. Desde `mongosh`, crea el usuario administrador y luego inicializa el `replica set` con sus miembros (MongoDB, s. f.-d; MongoDB, s. f.-e; MongoDB, s. f.-f).
 
-   YAML  
-   security:  
-     keyFile: /var/lib/mongodb/mongodb-keyfile  
-   replication:  
-     replSetName: "MiReplicaSet"
+```javascript
+use admin
 
+db.createUser({
+  user: "admin",
+  pwd: passwordPrompt(),
+  roles: [{ role: "root", db: "admin" }]
+})
+
+rs.initiate({
+  _id: "rs0",
+  members: [
+    { _id: 0, host: "mongo1:27017" },
+    { _id: 1, host: "mongo2:27017" },
+    { _id: 2, host: "mongo3:27017" }
+  ]
+})
+
+rs.status()
 ```
 
-
-Un dato importante es que, al habilitar keyFile, MongoDB activa automáticamente la autorización de usuarios, lo que significa que ya no se podrán realizar conexiones sin credenciales, incluso desde el propio servidor, una vez que el primer usuario haya sido creado (MongoDB, s. f.-g).
+Con esto queda listo el esquema básico de autenticación, control de acceso y réplica para un despliegue inicial (MongoDB, s. f.-d; MongoDB, s. f.-f).
 
 ## **Autenticación Avanzada mediante Certificados x.509**
 
