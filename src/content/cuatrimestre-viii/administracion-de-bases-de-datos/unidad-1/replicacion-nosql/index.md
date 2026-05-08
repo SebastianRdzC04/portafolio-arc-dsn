@@ -39,7 +39,7 @@ La gestión de bases de datos ha experimentado una metamorfosis radical desde la
 - [Estrategias de Backup y Recuperación de Datos](#estrategias-de-backup-y-recuperación-de-datos)
   - [Herramientas Nativas: mongodump y mongorestore](#herramientas-nativas-mongodump-y-mongorestore)
 - [Conclusiones y Futuro de la Seguridad NoSQL](#conclusiones-y-futuro-de-la-seguridad-nosql)
-- [Referencias (formato APA 7)](#referencias-formato-apa-7)
+- [Referencias](#referencias-formato-apa-7)
 
 ## **Fundamentos Teóricos y Filosofía NoSQL**
 
@@ -325,7 +325,7 @@ La administración de seguridad en bases de datos no relacionales como MongoDB h
 
 Un dato interesante para el futuro es la adopción del esquema OCSF en MongoDB 8.0, que estandariza los logs de seguridad para facilitar la interoperabilidad entre diferentes plataformas de ciberseguridad, lo que sugiere un movimiento de la industria hacia una defensa más coordinada y automatizada (MongoDB, s. f.-c). La clave para una administración exitosa radica en el equilibrio entre la flexibilidad operativa y la vigilancia constante, tratando a la base de datos no como un silo aislado, sino como una pieza central y protegida del tejido de infraestructura de la organización.
 
-## Referencias (formato APA 7)
+## Referencias
 
 DataCamp. (s. f.). *¿Qué es MongoDB? conceptos clave, casos de uso y buenas prácticas*. https://www.datacamp.com/es/blog/what-is-mongodb
 
