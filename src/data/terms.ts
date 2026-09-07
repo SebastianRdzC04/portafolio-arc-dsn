@@ -42,6 +42,16 @@ export const terms: Term[] = [
     period: "Mayo - Agosto 2026",
     color: "var(--color-accent)",
   },
+  {
+    slug: "cuatrimestre-ix",
+    name: "Cuatrimestre IX",
+    shortName: "Cuat. IX",
+    numeral: "IX",
+    description:
+      "Materias, entregables y evidencias del noveno cuatrimestre de Ingenieria en Desarrollo de Software (turno nocturno, grupo 9A TN).",
+    period: "Septiembre - Diciembre 2026",
+    color: "var(--color-accent)",
+  },
 ];
 
 /** Look up a term by its slug */

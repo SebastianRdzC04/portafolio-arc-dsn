@@ -1,0 +1,8 @@
+{
+  "name": "Extraccion de Conocimientos en Bases de Datos",
+  "shortName": "ECBD",
+  "description": "Minería de datos, knowledge discovery in databases (KDD), técnicas de extracción de conocimiento y analisis de datos.",
+  "cuatrimestre": "2026-3",
+  "color": "#d97706",
+  "order": 5
+}
