@@ -3,8 +3,23 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    ports:
-      - "2026:80"
-    environment:
-      - PDF_RENDER_ORIGIN=http://127.0.0.1:80
+    image: portafolio-arc-dsn:latest
+    container_name: portafolio-arc-dsn
     restart: unless-stopped
+    ports:
+      # Prod slot for project #4 in devstation port allocation
+      # see ~/proyectos/PORTS.md — block 50300-50399
+      - "50350:80"
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: 80
+      # Internal origin used by Puppeteer (pdf.ts) to fetch pages to render.
+      # Always localhost:PORT — never the public host.
+      PDF_RENDER_ORIGIN: http://127.0.0.1:80
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:80/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s

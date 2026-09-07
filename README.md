@@ -1,46 +1,97 @@
-# Astro Starter Kit: Basics
+# portafolio-arc-dsn
 
-```sh
-npm create astro@latest -- --template basics
+Portafolio académico de Sebastián Rodríguez Contreras — trabajos, materiales y
+horarios de la carrera de Ingeniería en Desarrollo de Software.
+
+**Stack:** Astro 5 SSR (Node standalone) · TypeScript strict · vanilla CSS con
+design tokens · Puppeteer + Chromium para exportación PDF.
+
+## Comandos
+
+```bash
+npm install            # Instalar dependencias
+npm run dev            # Dev server (http://localhost:4321)
+npm run build          # Build SSR → ./dist/server/entry.mjs
+npm run preview        # Preview del build local
+npx astro check        # Type-check + diagnostics
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+## Estructura del proyecto
 
-## 🚀 Project Structure
-
-Inside of your Astro project, you'll see the following folders and files:
-
-```text
-/
-├── public/
-│   └── favicon.svg
-├── src
-│   ├── assets
-│   │   └── astro.svg
-│   ├── components
-│   │   └── Welcome.astro
-│   ├── layouts
-│   │   └── Layout.astro
-│   └── pages
-│       └── index.astro
-└── package.json
+```
+src/
+├── components/        # .astro reutilizables (PascalCase)
+├── content/
+│   ├── cuatrimestre-vii/
+│   └── cuatrimestre-viii/
+├── content.config.ts   # Colecciones: trabajos (md) + materias (json)
+├── data/               # subjects.ts, terms.ts
+├── layouts/            # Layout.astro, WorkLayout.astro
+├── lib/                # utils.ts
+├── pages/              # File-based routing (SSR)
+└── styles/             # global.css (design tokens + reset)
 ```
 
-To learn more about the folder structure of an Astro project, refer to [our guide on project structure](https://docs.astro.build/en/basics/project-structure/).
+## Agregar un trabajo nuevo
 
-## 🧞 Commands
+1. Crear archivo `.md` bajo la ruta correcta:
+   `src/content/cuatrimestre-<N>/<materia>/unidad-<N>/<trabajo>/index.md`
+2. Usar frontmatter con el schema Zod definido en `src/content.config.ts`:
+   ```yaml
+   ---
+   title: "Título del trabajo"
+   description: "Descripción corta"
+   date: 2026-05-22
+   draft: false
+   ---
+   ```
+3. Las imágenes se referencian con rutas absolutas desde `/public/`:
+   `![alt](/images/<materia>/archivo.png)`
 
-All commands are run from the root of the project, from a terminal:
+## Agregar una materia nueva
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
+1. Crear `src/content/cuatrimestre-<N>/<materia-slug>/index.json` con:
+   ```json
+   {
+     "name": "Nombre completo",
+     "shortName": "Nombre corto",
+     "description": "Descripción",
+     "cuatrimestre": "cuatrimestre-vii",
+     "color": "#HEX"
+   }
+   ```
+2. Registrar la materia en `src/data/subjects.ts`.
 
-## 👀 Want to learn more?
+## Agregar un cuatrimestre nuevo
 
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+1. Crear `src/content/cuatrimestre-<IX>/horario.md`.
+2. Registrar el cuatrimestre en `src/data/terms.ts`.
+
+## Docker
+
+```bash
+docker compose up -d --build   # Build + arranca en puerto 50350 (prod slot)
+docker compose down             # Detiene y elimina el contenedor
+docker compose logs -f          # Sigue los logs
+```
+
+El `Dockerfile` está optimizado en 4 stages (deps → builder → prod-deps →
+runtime), corre como usuario no-root y produce una imagen ~250 MB.
+
+Variables de entorno reconocidas (todas opcionales con defaults sensatos):
+
+| Variable             | Default                          | Descripción                                |
+|----------------------|----------------------------------|--------------------------------------------|
+| `HOST`               | `0.0.0.0`                        | Bind address del servidor                  |
+| `PORT`               | `80`                             | Puerto interno del contenedor              |
+| `PDF_RENDER_ORIGIN`  | `http://127.0.0.1:${PORT}`       | Origin usado por Puppeteer para fetch PDF  |
+
+## Despliegue
+
+El contenedor está mapeado al slot **50350** de la devstation (ver
+`~/proyectos/PORTS.md` para la tabla completa de asignación). La URL pública
+la expone cloudflared según el dominio configurado.
+
+## Licencia
+
+Uso personal/académico. No redistribuir.

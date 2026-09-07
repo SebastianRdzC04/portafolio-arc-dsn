@@ -2,49 +2,76 @@
 
 ## Project Overview
 
-Academic portfolio for a Software Engineering student, built with **Astro 5** (SSG),
-**TypeScript (strict)**, and **vanilla CSS** with design tokens. Deployed to Cloudflare Pages.
-Content is authored in Markdown via Astro Content Collections.
+Academic portfolio for a Software Engineering student, built with **Astro 5** (SSR),
+**TypeScript (strict)**, and **vanilla CSS** with design tokens. Served by the
+`@astrojs/node` adapter in `standalone` mode. Optional PDF export uses
+**Puppeteer + Chromium** (Alpine) for headless rendering.
+
+> **Deployment reality (2026-09-06):** previously described as deployed to
+> Cloudflare Pages, but `astro.config.mjs` uses `output: 'server'` with the
+> Node adapter — this is **SSR**, not SSG. Cloudflare Pages cannot host this
+> config as-is (would need the Cloudflare adapter). The current deploy target
+> is the **Node standalone server** running in Docker on this devstation
+> (port `50350` prod, slot reserved in `~/proyectos/PORTS.md`).
+
+Content is authored in Markdown + JSON via Astro Content Collections and
+organized by **cuatrimestre** (`cuatrimestre-vii`, `cuatrimestre-viii`, …).
 
 ## Build / Dev / Check Commands
 
 ```bash
 npm run dev          # Start dev server (localhost:4321)
-npm run build        # Build static site to ./dist/
-npm run preview      # Preview the built site locally
+npm run build        # Build SSR server to ./dist/server/entry.mjs
+npm run preview      # Preview the built SSR server locally
 npx astro check      # Run Astro type-checking / diagnostics
 ```
 
-There is **no linter, formatter, or test framework** configured. No ESLint, Prettier,
-Vitest, or Jest. Use `npx astro check` as the primary validation command.
-If you add a test framework, prefer Vitest with `npm run test -- path/to/file.test.ts`
-for single-file execution.
+There is **no linter, formatter, or test framework** configured. No ESLint,
+Prettier, Vitest, or Jest. Use `npx astro check` as the primary validation
+command. If you add a test framework, prefer Vitest with
+`npm run test -- path/to/file.test.ts` for single-file execution.
 
 ## Tech Stack
 
-| Layer        | Technology                          |
-|--------------|-------------------------------------|
-| Framework    | Astro 5.17+ (static output)         |
-| Language     | TypeScript (strict mode)            |
-| Styling      | Vanilla CSS with custom properties  |
-| Content      | Markdown via Astro Content Collections (Zod schemas) |
+| Layer        | Technology                                       |
+|--------------|--------------------------------------------------|
+| Framework    | Astro 5.17+ (SSR, `output: 'server'`)            |
+| Adapter      | `@astrojs/node` (standalone)                     |
+| Language     | TypeScript (strict mode)                         |
+| Styling      | Vanilla CSS with custom properties               |
+| Content      | Markdown + JSON via Astro Content Collections (glob loader, Zod schemas) |
 | Fonts        | Archivo, Space Grotesk, JetBrains Mono (Google Fonts) |
-| Syntax HL    | Shiki (`github-light` theme)        |
-| Package mgr  | npm                                 |
-| Deploy       | Cloudflare Pages                    |
+| Syntax HL    | Shiki (`github-light` theme)                     |
+| PDF export   | Puppeteer + Chromium (Alpine)                    |
+| Package mgr  | npm                                              |
+| Deploy       | Docker (Node 22 Alpine + Chromium)               |
 
 ## Project Structure
 
 ```
 src/
-├── components/       # Reusable .astro components (PascalCase)
-├── content/          # Markdown content organized: <subject>/<unit>/<work>/index.md
-├── content.config.ts # Single "trabajos" collection with Zod schema + glob loader
-├── data/             # Static data (subjects.ts)
-├── layouts/          # Layout.astro (HTML shell), WorkLayout.astro (article chrome)
-├── lib/              # Utility functions (utils.ts)
-├── pages/            # File-based routing: index, 404, [subject]/, [...slug]
-└── styles/           # global.css (design tokens + reset)
+├── components/        # Reusable .astro components (PascalCase)
+├── content/
+│   ├── cuatrimestre-vii/
+│   │   ├── horario.md
+│   │   ├── <materia>/index.json          # subject metadata
+│   │   └── <materia>/unidad-N/<work>/index.md
+│   └── cuatrimestre-viii/
+│       └── ...
+├── content.config.ts   # Two collections: `trabajos` (md) + `materias` (json)
+├── data/               # Static data (subjects.ts, terms.ts)
+├── layouts/            # Layout.astro (HTML shell), WorkLayout.astro (article chrome)
+├── lib/                # Utility functions (utils.ts)
+├── pages/
+│   ├── index.astro
+│   ├── 404.astro
+│   ├── [term]/index.astro                          # cuatrimestre landing
+│   ├── [term]/horario.astro                        # schedule table
+│   ├── [term]/[subject]/index.astro                # subject overview
+│   ├── [term]/[subject]/[...slug].astro            # work detail page
+│   ├── [term]/[subject]/pdf.astro                  # PDF render trigger
+│   └── api/pdf.ts                                  # Puppeteer-based PDF endpoint
+└── styles/             # global.css (design tokens + reset)
 ```
 
 ### Images (public/)
@@ -53,13 +80,18 @@ src/
 public/
 └── images/
     ├── experiencia-de-usuario/   # Images for UX subject markdown content
-    └── arquitecturas-de-software/ # Images for Arq. SW subject markdown content
+    ├── arquitecturas-de-software/
+    ├── global/                   # Cross-cutting assets (logos, etc.)
+    └── ...
 ```
 
-- Store images in `public/images/<subject-slug>/` matching the `src/content/` folder names
-- Reference in markdown with absolute paths: `![alt text](/images/<subject-slug>/filename.jpeg)`
-- Images in `public/` are served as-is (no Astro optimization) — keep files reasonably sized
-- When adding a new subject, create a matching folder under `public/images/`
+- Store images in `public/images/<subject-slug>/` matching the `src/content/`
+  folder names.
+- Reference in markdown with absolute paths:
+  `![alt text](/images/<subject-slug>/filename.jpeg)`.
+- Images in `public/` are served as-is (no Astro optimization) — keep files
+  reasonably sized.
+- When adding a new subject, create a matching folder under `public/images/`.
 
 ## Code Style
 
@@ -99,7 +131,7 @@ Every `.astro` file follows this structure in order:
 ---
 // 1. Imports
 // 2. interface Props { ... }
-// 3. Data fetching & transformation logic
+// 3. Data fetching & transformation logic (SSR — runs on every request)
 ---
 
 <!-- 4. HTML template -->
@@ -115,8 +147,11 @@ Every `.astro` file follows this structure in order:
 
 - Use `<slot />` for content projection (default slot only)
 - Layout composition: Page → WorkLayout → Layout
-- All data fetching happens in frontmatter (build-time SSG)
-- Use `class:list` for conditional classes: `class:list={['base', { 'mod': bool }]}`
+- **SSR note:** data fetching happens in frontmatter **on every request**
+  (not at build time like SSG). Cache expensive lookups with ` Astro.cache`
+  or external stores if traffic justifies it.
+- Use `class:list` for conditional classes:
+  `class:list={['base', { 'mod': bool }]}`
 - Pass dynamic CSS values via inline style: `style={`--accent: ${color}`}`
 
 ### CSS
@@ -180,27 +215,30 @@ Organized in 8 sections on `:root`:
 
 ### Content Collections
 
-- Single collection: `trabajos` using `glob({ pattern: '**/*.md', base: './src/content' })`
-- Entry IDs encode the path: `<subject>/<unit>/<work>/index`
-- Parse IDs with `parseWorkId()` to extract subject, unit, work slugs
-- Subjects defined in `src/data/subjects.ts` with slug, name, description, color, units
+- Two collections, both with `glob` loader and base `./src/content`:
+  - `trabajos`: every `.md` under `src/content/`
+  - `materias`: every `index.json` under each subject folder
+- Entry IDs encode the path: `<term>/<subject>/<unit>/<work>/index`
+- Parse IDs with `parseWorkId()` (in `src/lib/utils.ts`) to extract term,
+  subject, unit, work slugs
+- Subjects defined in `src/data/subjects.ts` (color, units)
+- Cuatrimestres defined in `src/data/terms.ts` (name, description)
 - Render markdown with `const { Content } = await render(entry)`
 
-### Static Path Generation
+### Dynamic Routes (SSR)
 
-```ts
-export const getStaticPaths: GetStaticPaths = async () => {
-  const works = await getCollection('trabajos', ({ data }) => !data.draft);
-  return works.map((entry) => ({
-    params: { slug: ... },
-    props: { entry, ... },
-  }));
-};
-```
+The `[term]/[subject]/[...slug]` structure is generated **on every request**
+(no `getStaticPaths` for those routes — they're fully dynamic). The
+`[term]/[subject]/pdf.astro` page triggers the `api/pdf.ts` endpoint which
+uses Puppeteer to render the same page server-side and return a PDF binary.
 
-- Always type as `GetStaticPaths`
-- Pass needed data via `props` — don't re-fetch in frontmatter
-- Use `async` consistently for all `getStaticPaths` functions
+### PDF Export
+
+- Endpoint: `src/pages/api/pdf.ts`
+- Browser: system Chromium at `PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser`
+- Internal origin: read from `PDF_RENDER_ORIGIN` env var
+  (default `http://127.0.0.1:${PORT}`) — **never** the public host, or
+  Puppeteer would loop through cloudflared.
 
 ### Language
 

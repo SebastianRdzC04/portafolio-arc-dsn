@@ -1,0 +1,36 @@
+# Build artifacts
+dist/
+.astro/
+node_modules/
+
+# Git
+.git/
+.gitignore
+
+# Editor / IDE
+.idea/
+.vscode/
+.DS_Store
+
+# Env files (never bake secrets into images)
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+
+# Documentation that doesn't belong in the image
+README.md
+AGENTS.md
+PDF_EXPORT_DOCS.md
+
+# Docker artifacts (avoid recursive copy)
+Dockerfile
+.dockerignore
+docker-compose.yml
+
+# Skills / agent configs (not needed at runtime)
+opencode.json
+skills-lock.json
